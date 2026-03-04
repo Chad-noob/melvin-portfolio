@@ -69,9 +69,10 @@ export default function Hero() {
       // Scroll-based animations with ScrollTrigger
       // Image stays static - no scroll animation
 
-      // Name slides up on scroll
+      // Name slides up and scales down (bundles up) on scroll
       gsap.to(nameContainerRef.current, {
         y: -200,
+        scale: 0.3,
         opacity: 0,
         scrollTrigger: {
           trigger: heroSectionRef.current,
