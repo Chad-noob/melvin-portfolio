@@ -35,6 +35,7 @@ export default function Home() {
   }, [loading]);
 
   
+
   return (
     <>
       {loading && <Loader finishLoading={finishLoading} />}
