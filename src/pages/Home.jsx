@@ -20,6 +20,7 @@ export default function Home() {
         smoothWheel: true,
       });
 
+      
       function raf(time) {
         lenis.raf(time);
         requestAnimationFrame(raf);
