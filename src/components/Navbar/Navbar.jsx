@@ -26,6 +26,7 @@ export default function Navbar() {
     gsap.to(menuLine1.current, { width: "50%", duration: 0.3, ease: "power2.out" });
     gsap.to(menuLine3.current, { width: "50%", duration: 0.3, ease: "power2.out" });
   };
+  
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-40 p-6">
