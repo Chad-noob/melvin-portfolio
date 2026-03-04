@@ -49,6 +49,11 @@ export default function Navbar() {
             </a>
           </li>
           <li>
+            <a href="https://www.linkedin.com/in/melvin-george-889b25286/" target="_blank" rel="noopener noreferrer" className="hover:text-gray-600 transition-colors">
+              LinkedIn
+            </a>
+          </li>
+          <li>
             <a href="#contact" className="hover:text-gray-600 transition-colors">
               Contact
             </a>
@@ -56,9 +61,9 @@ export default function Navbar() {
         </ul>
       </div>
 
-      {/* Hamburger Menu - fixed in top right corner when scrolled */}
+      {/* Hamburger Menu - fixed in top center when scrolled */}
       <div 
-        className={`fixed top-6 right-6 cursor-pointer transition-opacity duration-300 ${isScrolled ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed top-6 left-1/2 -translate-x-1/2 cursor-pointer transition-opacity duration-300 ${isScrolled ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -83,7 +88,7 @@ export default function Navbar() {
 
       {/* Mobile Menu Dropdown */}
       {isMenuOpen && isScrolled && (
-        <div className="fixed top-20 right-6 bg-white shadow-lg rounded-lg p-6 min-w-[200px]">
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 bg-white shadow-lg rounded-lg p-6 min-w-[200px]">
           <ul className="flex flex-col gap-4 text-gray-800">
             <li>
               <a href="#about" className="hover:text-gray-600 transition-colors block">
@@ -93,6 +98,11 @@ export default function Navbar() {
             <li>
               <a href="#work" className="hover:text-gray-600 transition-colors block">
                 Work
+              </a>
+            </li>
+            <li>
+              <a href="https://www.linkedin.com/in/melvin-george-889b25286/" target="_blank" rel="noopener noreferrer" className="hover:text-gray-600 transition-colors block">
+                LinkedIn
               </a>
             </li>
             <li>
