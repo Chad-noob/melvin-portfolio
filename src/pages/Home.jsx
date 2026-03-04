@@ -3,6 +3,7 @@ import Lenis from "@studio-freight/lenis";
 import Loader from "../components/Loader/Loader";
 import Navbar from "../components/Navbar/Navbar";
 import Hero from "../components/Hero/Hero";
+import About from "../components/About/About";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -44,9 +45,7 @@ export default function Home() {
           <Navbar />
           <Hero />
           {/* Add content sections for scrolling */}
-          <section className="min-h-screen bg-white text-black flex items-center justify-center">
-            <h2 className="text-6xl font-bold">About Section</h2>
-          </section>
+          <About />
           <section className="min-h-screen bg-[#0d0d0d] text-white flex items-center justify-center">
             <h2 className="text-6xl font-bold">Work Section</h2>
           </section>
