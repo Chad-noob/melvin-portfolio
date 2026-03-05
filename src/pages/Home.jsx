@@ -4,6 +4,7 @@ import Loader from "../components/Loader/Loader";
 import Navbar from "../components/Navbar/Navbar";
 import Hero from "../components/Hero/Hero";
 import About from "../components/About/About";
+import Work from "../components/Work/Work";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -43,9 +44,7 @@ export default function Home() {
           <Hero />
           {/* Add content sections for scrolling */}
           <About />
-          <section className="min-h-screen bg-[#0d0d0d] text-white flex items-center justify-center">
-            <h2 className="text-6xl font-bold">Work Section</h2>
-          </section>
+          <Work />
         </>
       )}
     </>
