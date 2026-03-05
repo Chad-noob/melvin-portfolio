@@ -133,14 +133,14 @@ export default function Hero() {
               Creative<br />Designer
             </p>,
             <p className="text-gray-800 text-5xl font-light leading-tight">
-              Full Stack<br />Engineer
+              Full Stack<br />Developer
             </p>,
           ]}
           className="h-[120px]"
         />
       </div>
 
-      {/* Arrow */}
+      {/* Arrow */} 
       <div
         ref={arrowRef}
         className="absolute top-[12%] right-[5%] z-10"
