@@ -30,34 +30,56 @@ export default function Work() {
         setLoading(true);
         console.log('Fetching LeetCode data for:', LEETCODE_USERNAME);
         
-        // Try multiple APIs in sequence
-        const apis = [
-          `https://leetcode-stats-api.herokuapp.com/${LEETCODE_USERNAME.trim()}`,
-          `https://alfa-leetcode-api.onrender.com/userProfile/${LEETCODE_USERNAME.trim()}`,
-          `https://leetcode.com/${LEETCODE_USERNAME.trim()}`
-        ];
-        
         let data = null;
+        let calendarData = null;
         let lastError = null;
         
-        // Try each API until one works
-        for (const apiUrl of apis) {
-          try {
-            console.log('Trying API:', apiUrl);
-            const response = await fetch(apiUrl);
-            
-            if (response.ok) {
-              data = await response.json();
-              console.log('API response:', data);
+        // Try alfa-leetcode-api for stats
+        try {
+          console.log('Fetching from alfa-leetcode-api...');
+          const [profileRes, calendarRes] = await Promise.all([
+            fetch(`https://alfa-leetcode-api.onrender.com/userProfile/${LEETCODE_USERNAME.trim()}`),
+            fetch(`https://alfa-leetcode-api.onrender.com/${LEETCODE_USERNAME.trim()}/calendar`)
+          ]);   
+          
+          if (profileRes.ok) {
+            data = await profileRes.json();
+            console.log('Profile data:', data);
+          }
+          
+          if (calendarRes.ok) {
+            calendarData = await calendarRes.json();
+            console.log('Calendar data:', calendarData);
+          }
+        } catch (err) {
+          console.log('alfa-leetcode-api failed:', err.message);
+          lastError = err;
+        }
+        
+        // If alfa API didn't work, try other APIs for basic stats
+        if (!data) {
+          const fallbackApis = [
+            `https://leetcode-stats-api.herokuapp.com/${LEETCODE_USERNAME.trim()}`,
+            `https://leetcode.com/${LEETCODE_USERNAME.trim()}`
+          ];
+          
+          for (const apiUrl of fallbackApis) {
+            try {
+              console.log('Trying fallback API:', apiUrl);
+              const response = await fetch(apiUrl);
               
-              // Check if we got valid data
-              if (data && (data.totalSolved || data.easySolved !== undefined || data.submitStatsGlobal)) {
-                break;
+              if (response.ok) {
+                data = await response.json();
+                console.log('Fallback API response:', data);
+                
+                if (data && (data.totalSolved || data.easySolved !== undefined)) {
+                  break;
+                }
               }
+            } catch (err) {
+              console.log('Fallback API failed:', apiUrl, err.message);
+              lastError = err;
             }
-          } catch (err) {
-            console.log('API failed:', apiUrl, err.message);
-            lastError = err;
           }
         }
         
@@ -67,6 +89,11 @@ export default function Work() {
           const mediumSolved = data.mediumSolved || data.submitStatsGlobal?.acSubmissionNum?.[2]?.count || 0;
           const hardSolved = data.hardSolved || data.submitStatsGlobal?.acSubmissionNum?.[3]?.count || 0;
           const totalSolved = data.totalSolved || data.submitStatsGlobal?.acSubmissionNum?.[0]?.count || (easySolved + mediumSolved + hardSolved);
+          
+          // Use calendar data if available, otherwise use empty calendar
+          const submissionCalendar = calendarData?.submissionCalendar || 
+                                    data.submissionCalendar || 
+                                    (calendarData ? JSON.stringify(calendarData) : "{}");
           
           const transformedData = {
             username: LEETCODE_USERNAME,
@@ -78,9 +105,9 @@ export default function Work() {
               ]
             },
             userCalendar: {
-              totalActiveDays: totalSolved,
-              streak: 0,
-              submissionCalendar: "{}"
+              totalActiveDays: calendarData?.totalActiveDays || data.totalActiveDays || totalSolved,
+              streak: calendarData?.streak || data.streak || 0,
+              submissionCalendar: submissionCalendar
             }
           };
           
@@ -120,17 +147,17 @@ export default function Work() {
         });
         
         if (!userResponse.ok) {
+          console.log(`GitHub API returned status: ${userResponse.status}`);
           throw new Error(`GitHub API error: ${userResponse.status}`);
         }
 
         const userData = await userResponse.json();
         console.log('GitHub user data:', userData);
 
-        // Try to get contribution stats from multiple sources
+        // Try to get contribution stats
         let contributionsData = { total: { lastYear: 0 } };
         
         try {
-          // Try GitHub contributions API
           const contribResponse = await fetch(
             `https://github-contributions-api.jogruber.de/v4/${GITHUB_USERNAME}?y=last`
           );
@@ -140,9 +167,9 @@ export default function Work() {
             console.log('GitHub contributions data:', contributionsData);
           }
         } catch (err) {
-          console.log('Contributions API failed, using fallback');
-          // Fallback: calculate estimate from repo count
-          contributionsData.total.lastYear = userData.public_repos * 50; // Rough estimate
+          console.log('Contributions API failed:', err.message);
+          // Fallback: estimate from repo count
+          contributionsData.total.lastYear = userData.public_repos * 5;
         }
 
         setGithubData({
@@ -159,8 +186,8 @@ export default function Work() {
         console.log('GitHub data loaded successfully');
       } catch (err) {
         console.error("Error fetching GitHub data:", err);
-        // Set error message but don't leave it null
-        setGithubData(null);
+        // Don't set to null, keep any existing data
+        console.log('Will display contribution graph only');
       } finally {
         setGithubLoading(false);
       }
@@ -168,6 +195,10 @@ export default function Work() {
 
     if (GITHUB_USERNAME !== "YOUR_GITHUB_USERNAME") {
       fetchGitHubStats();
+      
+      // Auto-refresh every 10 minutes
+      const interval = setInterval(fetchGitHubStats, 10 * 60 * 1000);
+      return () => clearInterval(interval);
     } else {
       setGithubLoading(false);
     }
@@ -196,6 +227,20 @@ export default function Work() {
   };
 
   const contributions = getContributionData();
+
+  // Calculate total submissions from calendar
+  const getTotalSubmissions = () => {
+    if (!leetcodeData?.userCalendar?.submissionCalendar) return 0;
+    
+    try {
+      const calendar = JSON.parse(leetcodeData.userCalendar.submissionCalendar);
+      return Object.values(calendar).reduce((sum, count) => sum + (parseInt(count) || 0), 0);
+    } catch (err) {
+      return 0;
+    }
+  };
+
+  const totalSubmissions = getTotalSubmissions();
 
   // Get stats
   const getStats = () => {
@@ -260,7 +305,7 @@ export default function Work() {
             </svg>
             <div className="flex-1">
               <h3 className="text-3xl font-bold">LeetCode Stats</h3>
-              <p className="text-gray-400">Real-time problem solving activity</p>
+              <p className="text-gray-400"></p>
             </div>
             {leetcodeData && (
               <a
@@ -282,15 +327,9 @@ export default function Work() {
 
           {error && (
             <div className="text-center py-12">
-              <div className="bg-yellow-900/20 border border-yellow-600 rounded-xl p-6 mb-6">
-                <p className="text-yellow-400 mb-2 text-lg font-semibold">⚠️ API Temporarily Unavailable</p>
-                <p className="text-gray-400 text-sm mb-1">{error}</p>
-                <p className="text-gray-500 text-xs">The LeetCode API is rate limited. This is a temporary issue.</p>
-              </div>
-              
-              {MANUAL_STATS.total > 0 && (
+              {MANUAL_STATS.total > 0 ? (
                 <>
-                  <p className="text-gray-400 mb-6">Showing manually updated stats:</p>
+                  {/* Show stats cleanly without error box when manual stats exist */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                     <div className="bg-[#0d0d0d] rounded-xl p-6 text-center">
                       <p className="text-4xl font-bold text-green-400">{MANUAL_STATS.total}</p>
@@ -309,18 +348,81 @@ export default function Work() {
                       <p className="text-gray-400 mt-2">Hard</p>
                     </div>
                   </div>
+
+                  {/* Visual Progress Bars */}
+                  <div className="bg-[#0d0d0d] rounded-xl p-6 mb-8">
+                    <h4 className="text-xl font-semibold mb-4">Problem Difficulty Breakdown</h4>
+                    <div className="space-y-4">
+                      {/* Easy Progress */}
+                      <div>
+                        <div className="flex justify-between text-sm mb-2">
+                          <span className="text-green-500">Easy</span>
+                          <span className="text-gray-400">{MANUAL_STATS.easy} / {MANUAL_STATS.total}</span>
+                        </div>
+                        <div className="w-full bg-gray-800 rounded-full h-3">
+                          <div 
+                            className="bg-green-500 h-3 rounded-full transition-all"
+                            style={{ width: `${(MANUAL_STATS.easy / MANUAL_STATS.total) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                      {/* Medium Progress */}
+                      <div>
+                        <div className="flex justify-between text-sm mb-2">
+                          <span className="text-yellow-500">Medium</span>
+                          <span className="text-gray-400">{MANUAL_STATS.medium} / {MANUAL_STATS.total}</span>
+                        </div>
+                        <div className="w-full bg-gray-800 rounded-full h-3">
+                          <div 
+                            className="bg-yellow-500 h-3 rounded-full transition-all"
+                            style={{ width: `${(MANUAL_STATS.medium / MANUAL_STATS.total) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                      {/* Hard Progress */}
+                      <div>
+                        <div className="flex justify-between text-sm mb-2">
+                          <span className="text-red-500">Hard</span>
+                          <span className="text-gray-400">{MANUAL_STATS.hard} / {MANUAL_STATS.total}</span>
+                        </div>
+                        <div className="w-full bg-gray-800 rounded-full h-3">
+                          <div 
+                            className="bg-red-500 h-3 rounded-full transition-all"
+                            style={{ width: `${(MANUAL_STATS.hard / MANUAL_STATS.total) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <a 
+                    href={`https://leetcode.com/${LEETCODE_USERNAME.trim()}/`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block px-8 py-3 bg-yellow-500 text-black rounded-lg font-semibold hover:bg-yellow-400 transition-colors"
+                  >
+                    View My LeetCode Profile →
+                  </a>
+                </>
+              ) : (
+                <>
+                  {/* Show error only if no manual stats */}
+                  <div className="bg-yellow-900/20 border border-yellow-600 rounded-xl p-6 mb-6">
+                    <p className="text-yellow-400 mb-2 text-lg font-semibold">⚠️ API Temporarily Unavailable</p>
+                    <p className="text-gray-400 text-sm mb-1">{error}</p>
+                    <p className="text-gray-500 text-xs">The LeetCode API is rate limited. This is a temporary issue.</p>
+                  </div>
+                  <a 
+                    href={`https://leetcode.com/${LEETCODE_USERNAME.trim()}/`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block px-8 py-3 bg-yellow-500 text-black rounded-lg font-semibold hover:bg-yellow-400 transition-colors"
+                  >
+                    View My LeetCode Profile →
+                  </a>
+                  <p className="text-gray-500 text-sm mt-4">Visit my profile to see live stats</p>
                 </>
               )}
-              
-              <a 
-                href={`https://leetcode.com/${LEETCODE_USERNAME.trim()}/`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block px-8 py-3 bg-yellow-500 text-black rounded-lg font-semibold hover:bg-yellow-400 transition-colors"
-              >
-                View My LeetCode Profile →
-              </a>
-              <p className="text-gray-500 text-sm mt-4">Visit my profile to see live stats</p>
             </div>
           )}
 
@@ -352,6 +454,7 @@ export default function Work() {
                   <div className="mb-4">
                     <h4 className="text-xl font-semibold mb-2">Submission Activity</h4>
                     <p className="text-sm text-gray-400">
+                      <span className="font-semibold text-white">{totalSubmissions}</span> submissions in the past one year • {' '}
                       {leetcodeData.userCalendar?.totalActiveDays || 0} active days • 
                       Current streak: {leetcodeData.userCalendar?.streak || 0} days
                     </p>
@@ -401,16 +504,14 @@ export default function Work() {
                 <h3 className="text-3xl font-bold">GitHub Activity</h3>
                 <p className="text-gray-400">Open source contributions & projects</p>
               </div>
-              {githubData && (
-                <a
-                  href={`https://github.com/${GITHUB_USERNAME}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-6 py-3 bg-white text-black rounded-lg font-semibold hover:bg-gray-200 transition-colors"
-                >
-                  View Profile →
-                </a>
-              )}
+              <a
+                href={`https://github.com/${GITHUB_USERNAME}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-6 py-3 bg-white text-black rounded-lg font-semibold hover:bg-gray-200 transition-colors"
+              >
+                View Profile →
+              </a>
             </div>
 
             {githubLoading && (
@@ -500,17 +601,34 @@ export default function Work() {
             )}
 
             {!githubLoading && !githubData && (
-              <div className="text-center py-12">
-                <p className="text-gray-400 mb-4">Could not load GitHub data</p>
-                <a 
-                  href={`https://github.com/${GITHUB_USERNAME}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block px-8 py-3 bg-white text-black rounded-lg font-semibold hover:bg-gray-200 transition-colors"
-                >
-                  View My GitHub Profile →
-                </a>
-              </div>
+              <>
+                {/* Always show the contribution graph even if API fails */}
+                <div className="overflow-x-auto">
+                  <div className="mb-4">
+                    <h4 className="text-xl font-semibold mb-2">Contribution Activity (Last Year)</h4>
+                    <p className="text-sm text-gray-400">
+                    
+                    </p>
+                  </div>
+                  
+                  {/* GitHub contribution graph - reliable image-based service */}
+                  <div className="bg-[#0d0d0d] rounded-xl p-4 mb-6">
+                    <img 
+                      src={`https://ghchart.rshah.org/${GITHUB_USERNAME}`}
+                      alt="GitHub Contribution Graph"
+                      className="w-full"
+                      style={{ filter: 'brightness(0.9)' }}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextElementSibling.style.display = 'block';
+                      }}
+                    />
+                    <div style={{ display: 'none' }} className="text-center py-8 text-gray-400">
+                      <p>Graph temporarily unavailable</p>
+                    </div>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         )}
