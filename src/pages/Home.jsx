@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar/Navbar";
 import Hero from "../components/Hero/Hero";
 import About from "../components/About/About";
 import Work from "../components/Work/Work";
+import TechStack from "../components/TechStack/TechStack";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -45,6 +46,7 @@ export default function Home() {
           {/* Add content sections for scrolling */}
           <About />
           <Work />
+          <TechStack />
         </>
       )}
     </>
