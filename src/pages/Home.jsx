@@ -6,6 +6,7 @@ import Hero from "../components/Hero/Hero";
 import About from "../components/About/About";
 import Work from "../components/Work/Work";
 import TechStack from "../components/TechStack/TechStack";
+import Contact from "../components/Contact/Contact";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -47,6 +48,7 @@ export default function Home() {
           <About />
           <Work />
           <TechStack />
+          <Contact />
         </>
       )}
     </>
