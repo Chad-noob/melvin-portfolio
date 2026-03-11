@@ -74,64 +74,58 @@ export default function About() {
     const arrows = arrowsRef.current;
     const animations = animationRefs.current;
 
+    // Set initial blurred state immediately
+    lines.forEach((line, index) => {
+      if (line) {
+        gsap.set(line, { filter: "blur(10px)", opacity: 0.3 });
+      }
+      if (arrows[index]) {
+        gsap.set(arrows[index], { filter: "blur(10px)", opacity: 0.3 });
+      }
+    });
+
     lines.forEach((line, index) => {
       const arrow = arrows[index];
       const animation = animations[index];
       const container = line.parentElement;
       activeStates.current[index] = false;
 
-      // Combined blur animation for text and arrow
-      gsap.to(
-        [line, arrow],
-        {
-          filter: "blur(0px)",
-          opacity: 1,
-          scrollTrigger: {
-            trigger: container,
-            start: "top 70%",
-            end: "top 50%",
-            scrub: true,
-            immediateRender: false,
-          },
+      // Single optimized ScrollTrigger per line
+      gsap.timeline({
+        scrollTrigger: {
+          trigger: container,
+          start: "top 85%",
+          end: "top 15%",
+          scrub: 0.5,
         }
-      );
+      })
+      .to([line, arrow], {
+        filter: "blur(0px)",
+        opacity: 1,
+        duration: 0.3,
+        ease: "power2.out"
+      }, 0)
+      .to([line, arrow], {
+        filter: "blur(0px)",
+        opacity: 1,
+        duration: 0.4,
+      }, 0.3)
+      .to([line, arrow], {
+        filter: "blur(10px)",
+        opacity: 0.3,
+        duration: 0.3,
+        ease: "power2.in"
+      }, 0.7);
 
-      // Blur back when scrolling past
-      gsap.to(
-        [line, arrow],
-        {
-          filter: "blur(10px)",
-          opacity: 0.3,
-          scrollTrigger: {
-            trigger: container,
-            start: "top 50%",
-            end: "top 30%",
-            scrub: true,
-            immediateRender: false,
-          },
-        }
-      );
-
-      // Trigger animation when line is in focus
+      // Simple trigger for animation state
       if (animation) {
         ScrollTrigger.create({
           trigger: container,
-          start: "top 60%",
-          end: "top 40%",
-          onEnter: () => {
-            activeStates.current[index] = true;
-            playAnimation(index, animation);
-          },
-          onLeave: () => {
-            activeStates.current[index] = false;
-          },
-          onEnterBack: () => {
-            activeStates.current[index] = true;
-            playAnimation(index, animation);
-          },
-          onLeaveBack: () => {
-            activeStates.current[index] = false;
-          },
+          start: "top 65%",
+          end: "top 35%",
+          onToggle: (self) => {
+            activeStates.current[index] = self.isActive;
+          }
         });
       }
     });
@@ -162,15 +156,44 @@ export default function About() {
   ];
 
   return (
-    <section id="about" className="min-h-screen bg-white text-black flex flex-col items-center justify-center px-8 py-20">
-      <div className="max-w-6xl w-full">
+    <section id="about" className="min-h-screen bg-white text-black flex flex-col items-center justify-center px-8 py-20 relative" style={{ transform: "translateZ(0)" }}>
+      {/* Download Resume Button - Top Right */}
+      <a
+        href="/resume.pdf"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="absolute top-8 right-8 z-20 group cursor-pointer"
+      >
+        <div className="relative px-5 py-2.5 bg-black text-white font-medium text-sm rounded-full overflow-hidden transition-all duration-300 hover:scale-110 hover:shadow-xl">
+          {/* Animated background - subtle dark gray */}
+          <div className="absolute inset-0 bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          
+          {/* Sliding underline effect */}
+          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-white group-hover:w-3/4 transition-all duration-300"></div>
+          
+          {/* Button text */}
+          <span className="relative z-10 flex items-center gap-1.5">
+            Resume
+            <svg 
+              className="w-4 h-4 transform group-hover:translate-y-0.5 transition-transform duration-300" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+          </span>
+        </div>
+      </a>
+
+      <div className="max-w-6xl w-full relative z-10">
         {textLines.map((text, index) => (
           <div key={index} className="flex items-start justify-between gap-8 mb-16 group">
             {/* Arrow for each point */}
             <div 
               ref={(el) => (arrowsRef.current[index] = el)}
               className="flex-shrink-0 mt-2 cursor-pointer"
-              style={{ filter: "blur(10px)", opacity: 0.3 }}
+              style={{ filter: "blur(10px)", opacity: 0.3, willChange: "filter, opacity" }}
               onMouseEnter={() => handleArrowHover(index, true)}
               onMouseLeave={() => handleArrowHover(index, false)}
             >
@@ -194,7 +217,7 @@ export default function About() {
             <p
               ref={(el) => (linesRef.current[index] = el)}
               className="text-3xl md:text-4xl lg:text-5xl font-light leading-relaxed text-gray-800 flex-1"
-              style={{ filter: "blur(10px)", opacity: 0.3 }}
+              style={{ filter: "blur(10px)", opacity: 0.3, willChange: "filter, opacity" }}
               onMouseEnter={() => {
                 if (activeStates.current[index]) {
                   const animation = animationRefs.current[index];

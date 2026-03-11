@@ -1,117 +1,33 @@
-import { useRef, useState, useEffect, useMemo } from 'react';
-import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber';
-import { Text, MeshTransmissionMaterial, Float, Html } from '@react-three/drei';
+import { useRef, useState, useEffect } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { Environment, Float, Html } from '@react-three/drei';
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import gsap from 'gsap';
 
-// Create golf ball dimple texture with normal map
-function createGolfBallTextures() {
-  const size = 1024;
-  
-  // Color/albedo map
-  const colorCanvas = document.createElement('canvas');
-  colorCanvas.width = size;
-  colorCanvas.height = size;
-  const colorCtx = colorCanvas.getContext('2d');
-  
-  // Bright white background
-  colorCtx.fillStyle = '#ffffff';
-  colorCtx.fillRect(0, 0, size, size);
-  
-  // Normal map for 3D depth
-  const normalCanvas = document.createElement('canvas');
-  normalCanvas.width = size;
-  normalCanvas.height = size;
-  const normalCtx = normalCanvas.getContext('2d');
-  
-  // Neutral normal (pointing straight out)
-  normalCtx.fillStyle = 'rgb(128, 128, 255)';
-  normalCtx.fillRect(0, 0, size, size);
-  
-  // Create prominent dimple pattern
-  const dimpleRadius = 16;
-  const spacing = 35;
-  
-  for (let y = 0; y < size; y += spacing) {
-    for (let x = 0; x < size; x += spacing) {
-      // Offset every other row for hexagonal pattern
-      const offsetX = (y / spacing) % 2 === 0 ? 0 : spacing / 2;
-      const posX = x + offsetX;
-      
-      if (posX < size) {
-        // Draw dimple shadow on color map
-        const colorGradient = colorCtx.createRadialGradient(
-          posX, y, 0,
-          posX, y, dimpleRadius
-        );
-        colorGradient.addColorStop(0, 'rgba(0, 0, 0, 0.25)');
-        colorGradient.addColorStop(0.5, 'rgba(0, 0, 0, 0.15)');
-        colorGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-        
-        colorCtx.fillStyle = colorGradient;
-        colorCtx.beginPath();
-        colorCtx.arc(posX, y, dimpleRadius, 0, Math.PI * 2);
-        colorCtx.fill();
-        
-        // Draw normal map for depth
-        const normalGradient = normalCtx.createRadialGradient(
-          posX, y, 0,
-          posX, y, dimpleRadius
-        );
-        normalGradient.addColorStop(0, 'rgb(128, 128, 180)'); // Indent
-        normalGradient.addColorStop(0.7, 'rgb(128, 128, 220)');
-        normalGradient.addColorStop(1, 'rgb(128, 128, 255)'); // Normal
-        
-        normalCtx.fillStyle = normalGradient;
-        normalCtx.beginPath();
-        normalCtx.arc(posX, y, dimpleRadius, 0, Math.PI * 2);
-        normalCtx.fill();
-      }
-    }
-  }
-  
-  const colorTexture = new THREE.CanvasTexture(colorCanvas);
-  const normalTexture = new THREE.CanvasTexture(normalCanvas);
-  
-  return { colorTexture, normalTexture };
-}
-
-// Individual sphere component
-function TechSphere({ position, size, name, icon, logoUrl, index }) {
+// Individual premium glass sphere component
+function TechSphere({ position, size, name, logoUrl, color, index }) {
   const meshRef = useRef();
   const [hovered, setHovered] = useState(false);
-
-  // Create golf ball textures once
-  const textures = useMemo(() => {
-    const { colorTexture, normalTexture } = createGolfBallTextures();
-    colorTexture.wrapS = THREE.RepeatWrapping;
-    colorTexture.wrapT = THREE.RepeatWrapping;
-    colorTexture.repeat.set(3, 3);
-    
-    normalTexture.wrapS = THREE.RepeatWrapping;
-    normalTexture.wrapT = THREE.RepeatWrapping;
-    normalTexture.repeat.set(3, 3);
-    
-    return { colorTexture, normalTexture };
-  }, []);
-
-  // Random velocity for floating
+  
+  // Random velocity for free-floating movement
   const velocity = useRef({
-    x: (Math.random() - 0.5) * 0.3,
-    y: (Math.random() - 0.5) * 0.3,
-    z: (Math.random() - 0.5) * 0.2,
+    x: (Math.random() - 0.5) * 0.5,
+    y: (Math.random() - 0.5) * 0.5,
+    z: (Math.random() - 0.5) * 0.4,
   });
 
   useFrame((state) => {
     if (!meshRef.current) return;
 
-    // Floating animation
-    meshRef.current.position.x += velocity.current.x * 0.016;
-    meshRef.current.position.y += velocity.current.y * 0.016;
-    meshRef.current.position.z += velocity.current.z * 0.016;
+    // Super free-floating movement with boost on hover
+    const speedMultiplier = hovered ? 2.5 : 1;
+    meshRef.current.position.x += velocity.current.x * 0.02 * speedMultiplier;
+    meshRef.current.position.y += velocity.current.y * 0.02 * speedMultiplier;
+    meshRef.current.position.z += velocity.current.z * 0.02 * speedMultiplier;
 
-    // Boundary check and bounce
-    const bounds = { x: 8, y: 5, z: 4 };
+    // Boundary check and bounce for continuous movement
+    const bounds = { x: 8, y: 4, z: 4 };
     if (Math.abs(meshRef.current.position.x) > bounds.x) {
       velocity.current.x *= -1;
     }
@@ -122,11 +38,12 @@ function TechSphere({ position, size, name, icon, logoUrl, index }) {
       velocity.current.z *= -1;
     }
 
-    // Gentle rotation
-    meshRef.current.rotation.x += 0.002;
-    meshRef.current.rotation.y += 0.003;
+    // Faster rotation on hover
+    const rotationSpeed = hovered ? 3 : 1;
+    meshRef.current.rotation.x += 0.002 * rotationSpeed;
+    meshRef.current.rotation.y += 0.003 * rotationSpeed;
 
-    // Scale on hover
+    // Scale on hover with smooth transition
     const targetScale = hovered ? 1.3 : 1;
     meshRef.current.scale.lerp(
       new THREE.Vector3(targetScale, targetScale, targetScale),
@@ -136,47 +53,55 @@ function TechSphere({ position, size, name, icon, logoUrl, index }) {
 
   return (
     <Float
-      speed={2}
-      rotationIntensity={0.5}
-      floatIntensity={0.5}
+      speed={1.5}
+      rotationIntensity={0.3}
+      floatIntensity={1.2}
+      floatingRange={[-0.5, 0.5]}
     >
       <mesh
         ref={meshRef}
         position={position}
         onPointerEnter={() => setHovered(true)}
         onPointerLeave={() => setHovered(false)}
+        castShadow
+        receiveShadow
       >
-        <sphereGeometry args={[size, 128, 128]} />
+        <sphereGeometry args={[size, 64, 64]} />
         <meshStandardMaterial
-          map={textures.colorTexture}
-          normalMap={textures.normalTexture}
-          normalScale={[0.5, 0.5]}
           color="#ffffff"
-          roughness={0.7}
-          metalness={0.0}
-          envMapIntensity={1.2}
+          roughness={0.3}
+          metalness={0.2}
+          envMapIntensity={2.0}
         />
         
-        {/* Technology logo as HTML element */}
+        {/* Technology logo - much larger and visible on white sphere */}
         <Html
           center
-          distanceFactor={size * 2}
+          distanceFactor={size * 0.8}
           transform
-          occlude
+          sprite
           style={{
-            transition: 'all 0.3s',
+            transition: 'all 0.3s ease',
             pointerEvents: 'none',
           }}
         >
-          <div className="flex items-center justify-center" style={{ width: '100px', height: '100px' }}>
+          <div 
+            className="flex items-center justify-center" 
+            style={{ 
+              width: '200px', 
+              height: '200px',
+              transform: hovered ? 'scale(1.2)' : 'scale(1)',
+              transition: 'transform 0.3s ease',
+            }}
+          >
             <img 
               src={logoUrl} 
               alt={name}
               style={{
-                width: '80px',
-                height: '80px',
+                width: '180px',
+                height: '180px',
                 objectFit: 'contain',
-                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+                filter: 'drop-shadow(0 6px 16px rgba(0,0,0,0.8))',
               }}
             />
           </div>
@@ -186,138 +111,186 @@ function TechSphere({ position, size, name, icon, logoUrl, index }) {
   );
 }
 
-// Scene component
+// Scene component with premium lighting and composition
 function Scene({ mousePosition }) {
   const groupRef = useRef();
 
+  // Premium asymmetrical composition with overlapping spheres
   const techStack = [
     { 
-      name: 'C', 
-      icon: 'C', 
-      logoUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/c/c-original.svg',
-      position: [-6, 2, -2], 
-      size: 1.2 
-    },
-    { 
-      name: 'C++', 
-      icon: 'C++', 
-      logoUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg',
-      position: [6, -1, 1], 
-      size: 0.9 
-    },
-    { 
       name: 'Python', 
-      icon: 'PY', 
       logoUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg',
-      position: [-4, -2, 2], 
-      size: 1.4 
+      position: [-4, 1, 2], 
+      size: 1.8,
+      color: '#ffffff'
     },
     { 
       name: 'JavaScript', 
-      icon: 'JS', 
       logoUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg',
-      position: [2, 3, -1], 
-      size: 1.1 
+      position: [3.5, 2, 0], 
+      size: 1.5,
+      color: '#fffffa'
     },
     { 
       name: 'React', 
-      icon: 'RC', 
       logoUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg',
-      position: [-2, 0, 3], 
-      size: 1.0 
-    },
-    { 
-      name: 'Node.js', 
-      icon: 'ND', 
-      logoUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg',
-      position: [5, 2, -2], 
-      size: 0.85 
-    },
-    { 
-      name: 'Java', 
-      icon: 'JV', 
-      logoUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg',
-      position: [0, -3, 0], 
-      size: 1.15 
+      position: [-1, -1.5, 3], 
+      size: 1.6,
+      color: '#ffffff'
     },
     { 
       name: 'TypeScript', 
-      icon: 'TS', 
       logoUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg',
-      position: [-7, -1, 1], 
-      size: 0.9 
+      position: [5, -1, -1], 
+      size: 1.3,
+      color: '#fafafa'
+    },
+    { 
+      name: 'Node.js', 
+      logoUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg',
+      position: [-5.5, -2, 0], 
+      size: 1.2,
+      color: '#ffffff'
+    },
+    { 
+      name: 'C++', 
+      logoUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg',
+      position: [1, 0, -2], 
+      size: 1.1,
+      color: '#f5f5f5'
+    },
+    { 
+      name: 'Java', 
+      logoUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg',
+      position: [-2.5, 3, -1], 
+      size: 1.25,
+      color: '#ffffff'
     },
     { 
       name: 'HTML', 
-      icon: 'HT', 
       logoUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg',
-      position: [3, -2, 2], 
-      size: 1.0 
+      position: [6.5, 1, 2], 
+      size: 1.0,
+      color: '#fafafa'
     },
     { 
       name: 'CSS', 
-      icon: 'CS', 
       logoUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg',
-      position: [-3, 3, -1], 
-      size: 0.95 
+      position: [-6, 0.5, -2], 
+      size: 0.95,
+      color: '#ffffff'
     },
     { 
       name: 'Git', 
-      icon: 'GT', 
       logoUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg',
-      position: [7, 0, 2], 
-      size: 1.05 
+      position: [2, -2.5, 1], 
+      size: 1.1,
+      color: '#f8f8f8'
+    },
+    { 
+      name: 'C', 
+      logoUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/c/c-original.svg',
+      position: [-3, -0.5, -3], 
+      size: 0.9,
+      color: '#ffffff'
     },
     { 
       name: 'SQL', 
-      icon: 'SQL', 
       logoUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg',
-      position: [0, 1, -3], 
-      size: 0.8 
+      position: [4, 3, -2], 
+      size: 0.85,
+      color: '#fafafa'
     },
   ];
 
-  // Mouse parallax effect
+  // Smooth mouse parallax effect
   useFrame(() => {
     if (groupRef.current) {
       groupRef.current.rotation.x = THREE.MathUtils.lerp(
         groupRef.current.rotation.x,
-        mousePosition.y * 0.1,
-        0.05
+        mousePosition.y * 0.15,
+        0.03
       );
       groupRef.current.rotation.y = THREE.MathUtils.lerp(
         groupRef.current.rotation.y,
-        mousePosition.x * 0.1,
-        0.05
+        mousePosition.x * 0.15,
+        0.03
       );
     }
   });
 
   return (
-    <group ref={groupRef}>
-      <ambientLight intensity={2.0} />
-      <directionalLight position={[5, 5, 5]} intensity={2.5} castShadow />
-      <directionalLight position={[-5, -5, 5]} intensity={1.5} />
-      <pointLight position={[10, 10, 10]} intensity={2.0} />
-      <pointLight position={[-10, -10, -10]} intensity={1.5} color="#ffffff" />
-      <pointLight position={[0, 0, 10]} intensity={1.8} color="#ffffff" />
-      <spotLight position={[0, 15, 0]} angle={0.5} penumbra={1} intensity={1.5} />
-      <spotLight position={[0, -15, 0]} angle={0.5} penumbra={1} intensity={1.2} />
+    <>
+      {/* Bright lighting for white golf balls */}
+      <ambientLight intensity={1.2} />
+      <directionalLight position={[10, 10, 5]} intensity={2.0} color="#ffffff" castShadow />
+      <directionalLight position={[-10, -10, -5]} intensity={1.0} color="#ffffff" />
+      <pointLight position={[0, 5, 5]} intensity={2.5} color="#ffffff" />
+      <pointLight position={[-5, -5, 0]} intensity={1.5} color="#ffffff" />
+      <spotLight position={[10, 15, 10]} angle={0.3} penumbra={1} intensity={2.0} color="#ffffff" />
       
-      {techStack.map((tech, index) => (
-        <TechSphere
-          key={tech.name}
-          {...tech}
-          index={index}
-        />
-      ))}
-    </group>
+      {/* Environment for realistic reflections */}
+      <Environment preset="city" />
+      
+      {/* Sphere group with mouse parallax */}
+      <group ref={groupRef}>
+        {techStack.map((tech, index) => (
+          <TechSphere
+            key={tech.name}
+            {...tech}
+            index={index}
+          />
+        ))}
+      </group>
+    </>
   );
 }
 
 export default function TechStack() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const sectionRef = useRef(null);
+  const vantaRef = useRef(null);
+
+  // Initialize Vanta clouds effect
+  useEffect(() => {
+    let vantaEffect = null;
+    
+    const loadVanta = async () => {
+      if (!vantaRef.current && sectionRef.current) {
+        try {
+          const CLOUDS = (await import('vanta/dist/vanta.clouds.min')).default;
+          vantaEffect = CLOUDS({
+            el: sectionRef.current,
+            THREE: THREE,
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            skyColor: 0x0f0f1e,
+            cloudColor: 0x3a3a5c,
+            cloudShadowColor: 0x1a1a2e,
+            sunColor: 0xff9e64,
+            sunGlareColor: 0xffc777,
+            sunlightColor: 0xffb454,
+            speed: 1.2
+          });
+          vantaRef.current = vantaEffect;
+        } catch (error) {
+          console.error('Vanta loading error:', error);
+        }
+      }
+    };
+
+    loadVanta();
+
+    return () => {
+      if (vantaRef.current) {
+        vantaRef.current.destroy();
+        vantaRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const handleMouseMove = (event) => {
@@ -337,33 +310,41 @@ export default function TechStack() {
     <section
       ref={sectionRef}
       id="techstack"
-      className="min-h-screen bg-black text-white py-20 px-8 relative overflow-hidden"
+      className="min-h-screen text-white py-20 px-8 relative overflow-hidden"
+      style={{ position: 'relative', isolation: 'isolate' }}
     >
-      {/* Gradient background effects */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-20 left-20 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
-      </div>
-
       <div className="max-w-7xl mx-auto relative z-10">
         <h2 className="text-5xl md:text-6xl font-light tracking-[0.3em] mb-12 text-center uppercase">
           MY TECH STACK
         </h2>
 
-        {/* Three.js Canvas */}
-        <div className="w-full h-[700px]">
+        {/* Three.js Canvas with premium settings */}
+        <div className="w-full h-[700px] relative z-20">
           <Canvas
-            camera={{ position: [0, 0, 15], fov: 75 }}
+            camera={{ position: [0, 0, 18], fov: 60 }}
             gl={{ 
               antialias: true, 
               alpha: true,
               toneMapping: THREE.ACESFilmicToneMapping,
-              toneMappingExposure: 2.2,
+              toneMappingExposure: 1.8,
             }}
+            shadows
+            style={{ background: 'transparent' }}
           >
-            <color attach="background" args={['#000000']} />
+            <fog attach="fog" args={['#000000', 15, 35]} />
+            
             <Scene mousePosition={mousePosition} />
+            
+            {/* Post-processing effects for premium look */}
+            <EffectComposer>
+              <Bloom 
+                intensity={0.5} 
+                luminanceThreshold={0.2} 
+                luminanceSmoothing={0.9}
+                height={300}
+                opacity={0.8}
+              />
+            </EffectComposer>
           </Canvas>
         </div>
 
