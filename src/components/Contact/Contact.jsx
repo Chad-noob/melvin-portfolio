@@ -1,6 +1,5 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import emailjs from '@emailjs/browser';
-import { gsap } from 'gsap';
 
 export default function Contact() {
   const formRef = useRef();
@@ -12,12 +11,13 @@ export default function Contact() {
   const [status, setStatus] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,23 +25,15 @@ export default function Contact() {
     setStatus('');
 
     try {
-      // Replace these with your EmailJS credentials
       await emailjs.sendForm(
-        'YOUR_SERVICE_ID', // Replace with your EmailJS service ID
-        'YOUR_TEMPLATE_ID', // Replace with your EmailJS template ID
+        'service_u620o6e',
+        'template_6zi5pgn',
         formRef.current,
-        'YOUR_PUBLIC_KEY' // Replace with your EmailJS public key
+        'Xd5Ot5JpPbqHZE9k9'
       );
       
       setStatus('success');
       setFormData({ name: '', email: '', message: '' });
-      
-      // Animate success message
-      gsap.fromTo('.success-message', 
-        { opacity: 0, y: 20 }, 
-        { opacity: 1, y: 0, duration: 0.5 }
-      );
-      
       setTimeout(() => setStatus(''), 5000);
     } catch (error) {
       setStatus('error');
@@ -56,6 +48,7 @@ export default function Contact() {
     <section 
       id="contact" 
       className="min-h-screen bg-[#1a1a1a] text-white flex items-center justify-center px-8 py-20"
+      style={{ willChange: 'auto' }}
     >
       <div className="max-w-4xl w-full">
         {/* Main heading */}
@@ -78,7 +71,8 @@ export default function Contact() {
                   onChange={handleChange}
                   placeholder="John Doe *"
                   required
-                  className="w-full bg-transparent text-gray-400 text-2xl md:text-3xl outline-none placeholder-gray-600 focus:placeholder-gray-500 transition-colors"
+                  autoComplete="name"
+                  className="w-full bg-transparent text-gray-400 text-2xl md:text-3xl outline-none placeholder-gray-600 focus:placeholder-gray-500"
                 />
               </div>
             </label>
@@ -97,7 +91,8 @@ export default function Contact() {
                   onChange={handleChange}
                   placeholder="john@doe.com *"
                   required
-                  className="w-full bg-transparent text-gray-400 text-2xl md:text-3xl outline-none placeholder-gray-600 focus:placeholder-gray-500 transition-colors"
+                  autoComplete="email"
+                  className="w-full bg-transparent text-gray-400 text-2xl md:text-3xl outline-none placeholder-gray-600 focus:placeholder-gray-500"
                 />
               </div>
             </label>
@@ -116,7 +111,7 @@ export default function Contact() {
                   placeholder="Hello, I'd like to work with you... *"
                   required
                   rows="4"
-                  className="w-full bg-transparent text-gray-400 text-2xl md:text-3xl outline-none placeholder-gray-600 focus:placeholder-gray-500 transition-colors resize-none"
+                  className="w-full bg-transparent text-gray-400 text-2xl md:text-3xl outline-none placeholder-gray-600 focus:placeholder-gray-500 resize-none"
                 />
               </div>
             </label>
@@ -127,7 +122,7 @@ export default function Contact() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="group relative px-12 py-4 bg-white text-black font-medium text-lg rounded-full overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative px-12 py-4 bg-white text-black font-medium text-lg rounded-full overflow-hidden transition-transform duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="relative z-10">
                 {isSubmitting ? 'Sending...' : 'Send Message'}
@@ -154,7 +149,7 @@ export default function Contact() {
 
         {/* Footer info */}
         <div className="mt-20 pt-10 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-6 text-gray-500">
-          <div>melvingeorge@example.com</div>
+          <div>melvingeorge1804@gmail.com</div>
           <div className="flex gap-6">
             <a href="https://github.com/Chad-noob" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
               GitHub
