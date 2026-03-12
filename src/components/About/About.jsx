@@ -152,15 +152,15 @@ export default function About() {
   ];
 
   return (
-    <section id="about" className="min-h-screen bg-white text-black flex flex-col items-center justify-center px-8 py-20 relative" style={{ transform: "translateZ(0)" }}>
+    <section id="about" className="min-h-screen bg-white text-black flex flex-col items-center justify-center px-4 sm:px-6 md:px-8 py-12 sm:py-16 md:py-20 relative" style={{ transform: "translateZ(0)" }}>
       {/* Download Resume Button - Top Right */}
       <a
         href="/resume.pdf"
         target="_blank"
         rel="noopener noreferrer"
-        className="absolute top-8 right-8 z-20 group cursor-pointer"
+        className="absolute top-4 sm:top-6 md:top-8 right-4 sm:right-6 md:right-8 z-20 group cursor-pointer"
       >
-        <div className="relative px-5 py-2.5 bg-black text-white font-medium text-sm rounded-full overflow-hidden transition-all duration-300 hover:scale-110 hover:shadow-xl">
+        <div className="relative px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 bg-black text-white font-medium text-xs sm:text-sm rounded-full overflow-hidden transition-all duration-300 hover:scale-110 hover:shadow-xl">
           {/* Animated background - subtle dark gray */}
           <div className="absolute inset-0 bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           
@@ -184,21 +184,21 @@ export default function About() {
 
       <div className="max-w-6xl w-full relative z-10">
         {textLines.map((text, index) => (
-          <div key={index} className="flex items-start justify-between gap-8 mb-16 group">
+          <div key={index} className="flex items-start justify-between gap-4 sm:gap-6 md:gap-8 mb-10 sm:mb-12 md:mb-16 group">
             {/* Arrow for each point */}
             <div 
               ref={(el) => (arrowsRef.current[index] = el)}
-              className="flex-shrink-0 mt-2 cursor-pointer"
+              className="flex-shrink-0 mt-1 sm:mt-2 cursor-pointer"
               style={{ filter: "blur(10px)", opacity: 0.3, willChange: "filter, opacity" }}
               onMouseEnter={() => handleArrowHover(index, true)}
               onMouseLeave={() => handleArrowHover(index, false)}
             >
               <svg
-                width="40"
-                height="40"
+                width="30"
+                height="30"
                 viewBox="0 0 24 24"
                 fill="none"
-                className="text-gray-800"
+                className="sm:w-9 sm:h-9 md:w-10 md:h-10 text-gray-800"
               >
                 <path
                   d="M5 12H19M19 12L12 5M19 12L12 19"

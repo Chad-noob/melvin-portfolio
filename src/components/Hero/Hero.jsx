@@ -17,7 +17,6 @@ export default function Hero() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // Initial load animations - Name with slide up effect
       gsap.fromTo(
         nameWordsRef.current,
         {
@@ -66,10 +65,6 @@ export default function Hero() {
         delay: 0.3,
       });
 
-      // Scroll-based animations with ScrollTrigger
-      // Image stays static - no scroll animation
-
-      // Name slides up and scales down (bundles up) on scroll
       gsap.to(nameContainerRef.current, {
         y: -200,
         scale: 0.3,
@@ -81,25 +76,40 @@ export default function Hero() {
           scrub: 1,
         },
       });
-
-      // Location, role, and arrow stay visible - no scroll animation
-      // They only animate on initial load
-    });
+    }, heroSectionRef);
 
     return () => ctx.revert();
   }, []);
 
+  const roleSlides = [
+    <>
+      <span className="block">Freelance</span>
+      <span className="block">Developer</span>
+    </>,
+    <>
+      <span className="block">Creative</span>
+      <span className="block">Designer</span>
+    </>,
+    <>
+      <span className="block">Full Stack</span>
+      <span className="block">Developer</span>
+    </>,
+  ];
+
   return (
-    <section ref={heroSectionRef} className="relative h-screen bg-[#c5c5c5] overflow-hidden">
+    <section
+      ref={heroSectionRef}
+      className="relative h-screen overflow-hidden bg-[#c5c5c5]"
+    >
       {/* Location Badge */}
       <div
         ref={locationRef}
-        className="absolute top-[18%] left-0 bg-[#1a1a1a] text-white rounded-r-full px-8 py-4 flex items-center gap-4 z-10"
+        className="absolute top-[18%] left-0 z-20 flex items-center gap-2 rounded-r-full bg-[#1a1a1a] px-4 py-2 text-white sm:gap-3 sm:px-6 sm:py-3 md:gap-4 md:px-8 md:py-4"
       >
-        <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 sm:h-10 sm:w-10 md:h-12 md:w-12">
           <svg
-            className="w-6 h-6 animate-spin"
-            style={{ animationDuration: '3s' }}
+            className="h-4 w-4 animate-spin sm:h-5 sm:w-5 md:h-6 md:w-6"
+            style={{ animationDuration: "3s" }}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -112,41 +122,21 @@ export default function Hero() {
             />
           </svg>
         </div>
-        <div className="text-left">
-          <p className="text-xs opacity-80">Located</p>
-          <p className="text-xs opacity-80">in</p>
-          <p className="text-sm font-medium">India</p>
+
+        <div className="text-left leading-tight">
+          <p className="text-[10px] opacity-80 sm:text-xs">Located</p>
+          <p className="text-[10px] opacity-80 sm:text-xs">in</p>
+          <p className="text-xs font-medium sm:text-sm">India</p>
         </div>
       </div>
 
-      {/* Role Text with Vertical Slider */}
-      <div
-        ref={roleRef}
-        className="absolute top-[18%] right-[5%] text-right z-10"
-      >
-        <TextSlider
-          items={[
-            <p className="text-gray-800 text-5xl font-light leading-tight">
-              Freelance<br />Developer
-            </p>,
-            <p className="text-gray-800 text-5xl font-light leading-tight">
-              Creative<br />Designer
-            </p>,
-            <p className="text-gray-800 text-5xl font-light leading-tight">
-              Full Stack<br />Developer
-            </p>,
-          ]}
-          className="h-[120px]"
-        />
-      </div>
-
-      {/* Arrow */} 
+      {/* Arrow */}
       <div
         ref={arrowRef}
-        className="absolute top-[12%] right-[5%] z-10"
+        className="absolute top-[12%] right-[6%] z-20 scale-75 sm:scale-100"
       >
         <svg
-          className="w-8 h-8 text-white"
+          className="h-6 w-6 text-white sm:h-8 sm:w-8"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -160,36 +150,60 @@ export default function Hero() {
         </svg>
       </div>
 
-      {/* Photo with scroll effect */}
+      {/* Role Text */}
+      <div
+        ref={roleRef}
+        className="absolute top-[18%] right-[6%] z-20 flex justify-end"
+      >
+        <div className="w-[220px] sm:w-[260px] md:w-[320px] lg:w-[360px]">
+          <TextSlider
+            items={roleSlides.map((slide, index) => (
+              <div
+                key={index}
+                className="flex h-[120px] sm:h-[140px] md:h-[160px] lg:h-[180px] w-full items-center justify-end"
+              >
+                <div className="text-right text-[#1f1f1f] font-light leading-[0.9] tracking-[-0.03em] text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
+                  {slide}
+                </div>
+              </div>
+            ))}
+            className="h-[120px] overflow-hidden sm:h-[140px] md:h-[160px] lg:h-[180px]"
+          />
+        </div>
+      </div>
+
+      {/* Background Image */}
       <div
         ref={imageRef}
-        className="absolute inset-0 w-full h-full"
+        className="absolute inset-0 h-full w-full"
       >
         <img
           src={profileImg}
           alt="Profile"
-          className="w-full h-full object-cover"
+          className="h-full w-full object-cover"
         />
+        <div className="absolute inset-0 bg-black/15" />
       </div>
 
-      {/* Large Name Text with scroll reveal and stagger */}
-      <div 
+      {/* Large Name */}
+      <div
         ref={nameContainerRef}
-        className="absolute bottom-0 left-0 right-0 pointer-events-none px-4 z-10"
+        className="pointer-events-none absolute bottom-0 left-0 right-0 z-20 px-2 sm:px-4"
       >
         <div className="flex gap-[2vw]">
           <div className="overflow-hidden">
             <h1
               ref={(el) => (nameWordsRef.current[0] = el)}
-              className="text-[13vw] font-bold text-white uppercase leading-[0.85] tracking-tight"
+              className="leading-[0.85] tracking-tight text-[13vw] font-bold uppercase text-white"
             >
               MELVIN
             </h1>
           </div>
+
           <div className="overflow-hidden">
             <h1
               ref={(el) => (nameWordsRef.current[1] = el)}
-              className="text-[13vw] font-bold text-white uppercase leading-[0.85] tracking-tight"
+              className="leading-[0.85] tracking-tight text-[13vw] font-bold uppercase text-white"
             >
               GEORGE
             </h1>

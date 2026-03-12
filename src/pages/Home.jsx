@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar/Navbar";
 import Hero from "../components/Hero/Hero";
 import About from "../components/About/About";
 import Work from "../components/Work/Work";
+import Projects from "../components/Projects/Projects";
 import TechStack from "../components/TechStack/TechStack";
 import Contact from "../components/Contact/Contact";
 
@@ -51,6 +52,7 @@ export default function Home() {
           {/* Add content sections for scrolling */}
           <About />
           <Work />
+          <Projects />
           <TechStack />
           <Contact />
         </>

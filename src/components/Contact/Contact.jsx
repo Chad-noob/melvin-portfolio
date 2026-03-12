@@ -47,23 +47,23 @@ export default function Contact() {
   return (
     <section 
       id="contact" 
-      className="min-h-screen bg-[#1a1a1a] text-white flex items-center justify-center px-8 py-20"
+      className="min-h-screen bg-[#1a1a1a] text-white flex items-center justify-center px-4 sm:px-6 md:px-8 py-12 sm:py-16 md:py-20"
       style={{ willChange: 'auto' }}
     >
       <div className="max-w-4xl w-full">
         {/* Main heading */}
-        <h2 className="text-5xl md:text-6xl lg:text-7xl font-light mb-20 leading-tight">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light mb-12 sm:mb-16 md:mb-20 leading-tight">
           Let's start a<br />project together
         </h2>
 
         {/* Contact form */}
-        <form ref={formRef} onSubmit={handleSubmit} className="space-y-16">
+        <form ref={formRef} onSubmit={handleSubmit} className="space-y-10 sm:space-y-12 md:space-y-16">
           {/* Question 01 - Name */}
-          <div className="border-b border-gray-700 pb-6">
-            <label className="flex items-start gap-8">
-              <span className="text-sm text-gray-500 mt-2">01</span>
-              <div className="flex-1">
-                <div className="text-lg mb-4">What's your name?</div>
+          <div className="border-b border-gray-700 pb-4 sm:pb-6">
+            <label className="flex flex-col sm:flex-row items-start gap-3 sm:gap-6 md:gap-8">
+              <span className="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-2">01</span>
+              <div className="flex-1 w-full">
+                <div className="text-base sm:text-lg mb-3 sm:mb-4">What's your name?</div>
                 <input
                   type="text"
                   name="name"
@@ -72,18 +72,18 @@ export default function Contact() {
                   placeholder="John Doe *"
                   required
                   autoComplete="name"
-                  className="w-full bg-transparent text-gray-400 text-2xl md:text-3xl outline-none placeholder-gray-600 focus:placeholder-gray-500"
+                  className="w-full bg-transparent text-gray-400 text-xl sm:text-2xl md:text-3xl outline-none placeholder-gray-600 focus:placeholder-gray-500"
                 />
               </div>
             </label>
           </div>
 
           {/* Question 02 - Email */}
-          <div className="border-b border-gray-700 pb-6">
-            <label className="flex items-start gap-8">
-              <span className="text-sm text-gray-500 mt-2">02</span>
-              <div className="flex-1">
-                <div className="text-lg mb-4">What's your email?</div>
+          <div className="border-b border-gray-700 pb-4 sm:pb-6">
+            <label className="flex flex-col sm:flex-row items-start gap-3 sm:gap-6 md:gap-8">
+              <span className="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-2">02</span>
+              <div className="flex-1 w-full">
+                <div className="text-base sm:text-lg mb-3 sm:mb-4">What's your email?</div>
                 <input
                   type="email"
                   name="email"
@@ -92,18 +92,18 @@ export default function Contact() {
                   placeholder="john@doe.com *"
                   required
                   autoComplete="email"
-                  className="w-full bg-transparent text-gray-400 text-2xl md:text-3xl outline-none placeholder-gray-600 focus:placeholder-gray-500"
+                  className="w-full bg-transparent text-gray-400 text-xl sm:text-2xl md:text-3xl outline-none placeholder-gray-600 focus:placeholder-gray-500"
                 />
               </div>
             </label>
           </div>
 
           {/* Question 03 - Message */}
-          <div className="border-b border-gray-700 pb-6">
-            <label className="flex items-start gap-8">
-              <span className="text-sm text-gray-500 mt-2">03</span>
-              <div className="flex-1">
-                <div className="text-lg mb-4">What's your message?</div>
+          <div className="border-b border-gray-700 pb-4 sm:pb-6">
+            <label className="flex flex-col sm:flex-row items-start gap-3 sm:gap-6 md:gap-8">
+              <span className="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-2">03</span>
+              <div className="flex-1 w-full">
+                <div className="text-base sm:text-lg mb-3 sm:mb-4">What's your message?</div>
                 <textarea
                   name="message"
                   value={formData.message}
@@ -111,18 +111,18 @@ export default function Contact() {
                   placeholder="Hello, I'd like to work with you... *"
                   required
                   rows="4"
-                  className="w-full bg-transparent text-gray-400 text-2xl md:text-3xl outline-none placeholder-gray-600 focus:placeholder-gray-500 resize-none"
+                  className="w-full bg-transparent text-gray-400 text-xl sm:text-2xl md:text-3xl outline-none placeholder-gray-600 focus:placeholder-gray-500 resize-none"
                 />
               </div>
             </label>
           </div>
 
           {/* Submit button */}
-          <div className="flex justify-end pt-8">
+          <div className="flex justify-center sm:justify-end pt-6 sm:pt-8">
             <button
               type="submit"
               disabled={isSubmitting}
-              className="group relative px-12 py-4 bg-white text-black font-medium text-lg rounded-full overflow-hidden transition-transform duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative px-8 sm:px-10 md:px-12 py-3 sm:py-4 bg-white text-black font-medium text-base sm:text-lg rounded-full overflow-hidden transition-transform duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
             >
               <span className="relative z-10">
                 {isSubmitting ? 'Sending...' : 'Send Message'}

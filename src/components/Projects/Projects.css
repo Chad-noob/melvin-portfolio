@@ -1,0 +1,354 @@
+/* Projects Section - Minimalist Design */
+.projects-section {
+  min-height: 100vh;
+  background: #ffffff;
+  padding: 80px 0;
+  position: relative;
+}
+
+@media (min-width: 640px) {
+  .projects-section {
+    padding: 100px 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .projects-section {
+    padding: 120px 0;
+  }
+}
+
+.projects-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+@media (min-width: 640px) {
+  .projects-container {
+    padding: 0 40px;
+  }
+}
+
+@media (min-width: 768px) {
+  .projects-container {
+    padding: 0 60px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .projects-container {
+    padding: 0 80px;
+  }
+}
+
+.section-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  color: #999999;
+  text-transform: uppercase;
+  margin-bottom: 40px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+}
+
+@media (min-width: 640px) {
+  .section-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    margin-bottom: 60px;
+  }
+}
+
+@media (min-width: 768px) {
+  .section-label {
+    margin-bottom: 80px;
+  }
+}
+
+.projects-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.project-item {
+  display: flex;
+  flex-direction: column;
+  padding: 40px 0;
+  border-bottom: 1px solid #e0e0e0;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+  cursor: pointer;
+}
+
+@media (min-width: 640px) {
+  .project-item {
+    padding: 50px 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .project-item {
+    padding: 60px 0;
+  }
+}
+
+.project-item:first-child {
+  border-top: 1px solid #e0e0e0;
+}
+
+.project-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.project-item.hovered .project-main {
+  padding-left: 20px;
+}
+
+.project-item.hovered .project-name {
+  transform: translateX(10px);
+}
+
+.project-name-wrapper {
+  flex: 1;
+  overflow: hidden;
+}
+
+.project-name {
+  font-size: 40px;
+  font-weight: 400;
+  color: #000000;
+  margin: 0;
+  line-height: 1;
+  letter-spacing: -1px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+@media (min-width: 480px) {
+  .project-name {
+    font-size: 50px;
+  }
+}
+
+@media (min-width: 640px) {
+  .project-name {
+    font-size: 60px;
+    letter-spacing: -1.5px;
+  }
+}
+
+@media (min-width: 768px) {
+  .project-name {
+    font-size: 70px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .project-name {
+    font-size: 80px;
+    letter-spacing: -2px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .project-name {
+    font-size: 90px;
+  }
+}
+
+.project-category {
+  font-size: 14px;
+  font-weight: 400;
+  color: #666666;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  margin-left: 20px;
+}
+
+@media (min-width: 640px) {
+  .project-category {
+    font-size: 16px;
+    letter-spacing: 0.4px;
+    margin-left: 30px;
+  }
+}
+
+@media (min-width: 768px) {
+  .project-category {
+    font-size: 18px;
+    letter-spacing: 0.5px;
+    margin-left: 40px;
+  }
+}
+
+.project-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.status-badge {
+  padding: 6px 14px;
+  background: #FF6B35;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Project Details - Expandable */
+.project-details {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+  margin-top: 0;
+}
+
+.project-details.visible {
+  max-height: 600px;
+  opacity: 1;
+  margin-top: 40px;
+}
+
+.project-info-grid {
+  display: flex;
+  justify-content: space-between;
+  gap: 60px;
+  padding: 0 20px;
+}
+
+.project-info-left {
+  flex: 1;
+  max-width: 900px;
+}
+
+.project-info-right {
+  display: flex;
+  align-items: flex-start;
+}
+
+.project-subtitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: #000000;
+  margin-bottom: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.project-description {
+  margin-bottom: 20px;
+}
+
+.desc-paragraph {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #444444;
+  margin-bottom: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.project-period {
+  font-size: 14px;
+  font-weight: 500;
+  color: #666666;
+  margin-bottom: 15px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.project-tools {
+  font-size: 14px;
+  color: #444444;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.tools-label {
+  font-weight: 600;
+  color: #000000;
+}
+
+.project-link {
+  display: inline-block;
+  padding: 12px 28px;
+  background: #000000;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  white-space: nowrap;
+}
+
+.project-link:hover {
+  background: #333333;
+}
+
+/* Responsive Design */
+@media (max-width: 767px) {
+  .project-main {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .project-right {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    margin-left: 0;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  
+  .project-category {
+    margin-left: 0;
+  }
+  
+  .project-info-grid {
+    padding: 0;
+  }
+  
+  .desc-paragraph {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+  .project-info-grid {
+    flex-direction: column;
+    gap: 30px;
+  }
+}
+
+@media (max-width: 479px) {
+  .project-subtitle {
+    font-size: 18px;
+  }
+  
+  .status-badge {
+    font-size: 10px;
+    padding: 4px 10px;
+  }
+}

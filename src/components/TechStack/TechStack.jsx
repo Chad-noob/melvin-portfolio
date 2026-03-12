@@ -227,17 +227,17 @@ export default function TechStack() {
     <section
       ref={sectionRef}
       id="techstack"
-      className="min-h-screen text-white py-20 px-8 relative overflow-hidden bg-[#0d0d0d]"
+      className="min-h-screen text-white py-12 sm:py-16 md:py-20 px-4 sm:px-6 md:px-8 relative overflow-hidden bg-[#0d0d0d]"
     >
       <div className="absolute inset-0 bg-gradient-to-b from-[#0d0d0d] via-[#1a1a2e] to-[#0d0d0d]"></div>
       <div className="max-w-7xl mx-auto relative z-10">
-        <h2 className="text-5xl md:text-6xl font-light tracking-[0.3em] mb-12 text-center uppercase">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light tracking-[0.2em] sm:tracking-[0.3em] mb-8 sm:mb-10 md:mb-12 text-center uppercase">
           MY TECH STACK
         </h2>
 
-        <div className="w-full h-[700px] relative">
+        <div className="w-full h-[400px] sm:h-[500px] md:h-[600px] lg:h-[700px] relative">
           <Canvas
-            camera={{ position: [0, 0, 18], fov: 60 }}
+            camera={{ position: [0, 0, window.innerWidth < 768 ? 22 : 18], fov: window.innerWidth < 768 ? 70 : 60}}
             gl={{ 
               antialias: true, 
               alpha: true,
@@ -260,7 +260,7 @@ export default function TechStack() {
           </Canvas>
         </div>
 
-        <p className="text-center text-gray-500 text-sm mt-8 tracking-wider">
+        <p className="text-center text-gray-500 text-xs sm:text-sm mt-6 sm:mt-8 tracking-wider px-4">
           HOVER OVER SPHERES TO INTERACT
         </p>
       </div>
