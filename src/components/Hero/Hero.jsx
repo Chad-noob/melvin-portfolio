@@ -81,21 +81,6 @@ export default function Hero() {
     return () => ctx.revert();
   }, []);
 
-  const roleSlides = [
-    <>
-      <span className="block">Freelance</span>
-      <span className="block">Developer</span>
-    </>,
-    <>
-      <span className="block">Creative</span>
-      <span className="block">Designer</span>
-    </>,
-    <>
-      <span className="block">Full Stack</span>
-      <span className="block">Developer</span>
-    </>,
-  ];
-
   return (
     <section
       ref={heroSectionRef}
@@ -153,23 +138,22 @@ export default function Hero() {
       {/* Role Text */}
       <div
         ref={roleRef}
-        className="absolute top-[18%] right-[6%] z-20 flex justify-end"
+        className="absolute top-[18%] right-[6%] z-20"
       >
-        <div className="w-[220px] sm:w-[260px] md:w-[320px] lg:w-[360px]">
-          <TextSlider
-            items={roleSlides.map((slide, index) => (
-              <div
-                key={index}
-                className="flex h-[120px] sm:h-[140px] md:h-[160px] lg:h-[180px] w-full items-center justify-end"
-              >
-                <div className="text-right text-[#1f1f1f] font-light leading-[0.9] tracking-[-0.03em] text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
-                  {slide}
-                </div>
-              </div>
-            ))}
-            className="h-[120px] overflow-hidden sm:h-[140px] md:h-[160px] lg:h-[180px]"
-          />
-        </div>
+        <TextSlider
+          items={[
+            <div className="text-right text-[#1f1f1f] font-light leading-tight text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
+              Freelance<br />Developer
+            </div>,
+            <div className="text-right text-[#1f1f1f] font-light leading-tight text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
+              Creative<br />Designer
+            </div>,
+            <div className="text-right text-[#1f1f1f] font-light leading-tight text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
+              Full Stack<br />Developer
+            </div>,
+          ]}
+          className="h-[60px] overflow-hidden sm:h-[80px] md:h-[100px] lg:h-[120px]"
+        />
       </div>
 
       {/* Background Image */}

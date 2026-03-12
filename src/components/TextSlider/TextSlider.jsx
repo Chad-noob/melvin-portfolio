@@ -3,10 +3,13 @@ import { gsap } from "gsap";
 
 export default function TextSlider({ items, className = "" }) {
   const sliderRef = useRef(null);
+  const contentRef = useRef(null);
 
   useEffect(() => {
     const slider = sliderRef.current;
-    if (!slider || items.length <= 1) return;
+    const content = contentRef.current;
+    
+    if (!slider || !content || items.length <= 1) return;
 
     const lineHeight = slider.offsetHeight;
     const totalItems = items.length;
@@ -19,17 +22,17 @@ export default function TextSlider({ items, className = "" }) {
     // Animate through each item
     items.forEach((_, index) => {
       if (index < totalItems - 1) {
-        tl.to(slider.children[0], {
+        tl.to(content, {
           y: -(index + 1) * lineHeight,
           duration: 1.2,
           ease: "power4.inOut",
-          delay: 2, // Pause for 2 seconds before sliding to next
+          delay: 2,
         });
       }
     });
 
     // Reset to first item
-    tl.to(slider.children[0], {
+    tl.to(content, {
       y: 0,
       duration: 1.2,
       ease: "power4.inOut",
@@ -41,7 +44,7 @@ export default function TextSlider({ items, className = "" }) {
 
   return (
     <div ref={sliderRef} className={`overflow-hidden ${className}`}>
-      <div className="flex flex-col">
+      <div ref={contentRef} className="flex flex-col">
         {items.map((item, index) => (
           <div key={index} className="flex-shrink-0">
             {item}
