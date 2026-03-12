@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -565,7 +565,7 @@ export default function Work() {
                       <div className="flex flex-wrap gap-1">
                         {githubData.contributions.contributions.map((week, weekIndex) => (
                           <div key={weekIndex} className="flex flex-col gap-1">
-                            {week.days?.map((day, dayIndex) => (
+                              {week.days?.map((day, dayIndex) => (
                               <div
                                 key={dayIndex}
                                 className="w-3 h-3 rounded-sm transition-all hover:scale-125 cursor-pointer"
@@ -632,11 +632,6 @@ export default function Work() {
             )}
           </div>
         )}
-
-        {/* Projects Section Placeholder */}
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-xl">More projects coming soon...</p>
-        </div>
       </div>
     </section>
   );

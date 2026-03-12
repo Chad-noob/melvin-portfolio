@@ -15,23 +15,27 @@ export default function Home() {
     setLoading(false);
   };
 
-  // Only enable smooth scroll after loading
+  // Optimized smooth scroll configuration after loading
   useEffect(() => {
     if (!loading) {
       const lenis = new Lenis({
-        duration: 1.2,
+        duration: 1.0,  // Reduced from 1.2 for faster response
         easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
         smoothWheel: true,
+        lerp: 0.1,  // Added explicit lerp value for smoother interpolation
+        touchMultiplier: 2,  // Better touch sensitivity
       });
 
+      let rafId;
       function raf(time) {
         lenis.raf(time);
-        requestAnimationFrame(raf);
+        rafId = requestAnimationFrame(raf);
       }
 
-      requestAnimationFrame(raf);
+      rafId = requestAnimationFrame(raf);
 
       return () => {
+        cancelAnimationFrame(rafId);
         lenis.destroy();
       };
     }

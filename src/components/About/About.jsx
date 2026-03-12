@@ -90,32 +90,31 @@ export default function About() {
       const container = line.parentElement;
       activeStates.current[index] = false;
 
-      // Single optimized ScrollTrigger per line
+      // Optimized ScrollTrigger with simple opacity-only animation
       gsap.timeline({
         scrollTrigger: {
           trigger: container,
           start: "top 85%",
           end: "top 15%",
-          scrub: 0.5,
+          scrub: 1,
+          onUpdate: (self) => {
+            // Simple opacity transition without expensive blur calculations
+            const progress = self.progress;
+            const opacity = progress < 0.5 ? 0.3 + (progress * 1.4) : 1 - ((progress - 0.5) * 1.4);
+            line.style.opacity = Math.max(0.3, Math.min(1, opacity));
+            arrow.style.opacity = Math.max(0.3, Math.min(1, opacity));
+            
+            // Apply blur only at extremes to reduce calculations
+            if (progress < 0.15 || progress > 0.85) {
+              line.style.filter = "blur(10px)";
+              arrow.style.filter = "blur(10px)";
+            } else {
+              line.style.filter = "none";
+              arrow.style.filter = "none";
+            }
+          }
         }
-      })
-      .to([line, arrow], {
-        filter: "blur(0px)",
-        opacity: 1,
-        duration: 0.3,
-        ease: "power2.out"
-      }, 0)
-      .to([line, arrow], {
-        filter: "blur(0px)",
-        opacity: 1,
-        duration: 0.4,
-      }, 0.3)
-      .to([line, arrow], {
-        filter: "blur(10px)",
-        opacity: 0.3,
-        duration: 0.3,
-        ease: "power2.in"
-      }, 0.7);
+      });
 
       // Simple trigger for animation state
       if (animation) {
@@ -138,12 +137,9 @@ export default function About() {
   const handleArrowHover = (index, isHovering) => {
     const arrow = arrowsRef.current[index];
     if (arrow) {
-      gsap.to(arrow, {
-        x: isHovering ? 20 : 0,
-        scale: isHovering ? 1.2 : 1,
-        duration: 0.3,
-        ease: "power2.out",
-      });
+      // Simplified hover animation without GSAP for better performance
+      arrow.style.transform = isHovering ? 'translateX(15px) scale(1.1)' : 'translateX(0) scale(1)';
+      arrow.style.transition = 'transform 0.3s ease';
     }
   };
 
