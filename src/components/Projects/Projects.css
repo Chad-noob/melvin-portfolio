@@ -193,6 +193,15 @@
   gap: 20px;
 }
 
+.expand-indicator {
+  display: none; /* Hidden on desktop */
+  font-size: 28px;
+  color: #666666;
+  font-weight: 300;
+  margin-left: 10px;
+  transition: color 0.3s ease;
+}
+
 .status-badge {
   padding: 6px 14px;
   background: #FF6B35;
@@ -230,6 +239,7 @@
   max-height: 600px;
   opacity: 1;
   margin-top: 40px;
+  overflow: visible;
 }
 
 .project-info-grid {
@@ -320,10 +330,18 @@
     margin-left: 0;
     margin-top: 12px;
     flex-wrap: wrap;
+    width: 100%;
+    justify-content: space-between;
   }
   
   .project-category {
     margin-left: 0;
+  }
+
+  .expand-indicator {
+    display: block; /* Show on mobile */
+    font-size: 32px;
+    margin-left: auto;
   }
   
   .project-info-grid {
@@ -332,6 +350,21 @@
   
   .desc-paragraph {
     font-size: 14px;
+  }
+
+  /* Mobile touch feedback */
+  .project-item {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .project-item:active {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+
+  /* Increase max-height for mobile to accommodate longer content */
+  .project-details.visible {
+    max-height: 2000px;
+    overflow: visible;
   }
 }
 

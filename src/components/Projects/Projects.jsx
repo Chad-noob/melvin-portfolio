@@ -3,6 +3,20 @@ import './Projects.css';
 
 export default function Projects() {
   const [hoveredProject, setHoveredProject] = useState(null);
+  const [expandedProject, setExpandedProject] = useState(null);
+
+  const handleProjectInteraction = (projectId) => {
+    // For touch devices, toggle expanded state on click
+    if (expandedProject === projectId) {
+      setExpandedProject(null);
+    } else {
+      setExpandedProject(projectId);
+    }
+  };
+
+  const isProjectActive = (projectId) => {
+    return hoveredProject === projectId || expandedProject === projectId;
+  };
 
   const projects = [
     {
@@ -46,24 +60,29 @@ export default function Projects() {
           {projects.map((project, index) => (
             <div
               key={project.id}
-              className={`project-item ${hoveredProject === project.id ? 'hovered' : ''}`}
+              className={`project-item ${isProjectActive(project.id) ? 'hovered' : ''}`}
               onMouseEnter={() => setHoveredProject(project.id)}
               onMouseLeave={() => setHoveredProject(null)}
+              onClick={() => handleProjectInteraction(project.id)}
+              style={{ cursor: 'pointer' }}
             >
               <div className="project-main">
                 <div className="project-name-wrapper">
                   <h2 className="project-name">{project.name}</h2>
                 </div>
                 <div className="project-right">
-                  {project.status === 'development' && hoveredProject === project.id && (
+                  {project.status === 'development' && isProjectActive(project.id) && (
                     <span className="status-badge">Under Development</span>
                   )}
                   <div className="project-category">{project.category}</div>
+                  <span className="expand-indicator" aria-hidden="true">
+                    {isProjectActive(project.id) ? '−' : '+'}
+                  </span>
                 </div>
               </div>
               
               {/* Expanded Details */}
-              <div className={`project-details ${hoveredProject === project.id ? 'visible' : ''}`}>
+              <div className={`project-details ${isProjectActive(project.id) ? 'visible' : ''}`}>
                 <div className="project-info-grid">
                   <div className="project-info-left">
                     <h3 className="project-subtitle">{project.shortDesc}</h3>
@@ -83,6 +102,7 @@ export default function Projects() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="project-link"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       View on GitHub →
                     </a>
