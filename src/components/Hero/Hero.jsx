@@ -55,11 +55,12 @@ export default function Hero() {
       });
 
       gsap.from(imageRef.current, {
-        scale: 0.9,
         opacity: 0,
-        duration: 1.2,
+        y: 16,
+        duration: 0.9,
         ease: "power4.out",
         delay: 0.2,
+        force3D: true,
       });
 
       gsap.to(nameContainerRef.current, {
@@ -103,6 +104,9 @@ export default function Hero() {
         <img
           src={profileImg}
           alt="Profile"
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
           className="h-full w-full object-cover object-[58%_center] sm:object-center"
         />
         <div className="absolute inset-0 bg-black/10 sm:bg-black/15" />

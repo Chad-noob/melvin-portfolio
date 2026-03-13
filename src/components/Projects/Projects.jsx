@@ -1,12 +1,33 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './Projects.css';
 
 export default function Projects() {
   const [hoveredProject, setHoveredProject] = useState(null);
   const [expandedProject, setExpandedProject] = useState(null);
+  const [isMobileView, setIsMobileView] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+
+    const handleMediaChange = (event) => {
+      setIsMobileView(event.matches);
+      if (!event.matches) {
+        setExpandedProject(null);
+      }
+      setHoveredProject(null);
+    };
+
+    handleMediaChange(mediaQuery);
+    mediaQuery.addEventListener('change', handleMediaChange);
+
+    return () => mediaQuery.removeEventListener('change', handleMediaChange);
+  }, []);
 
   const handleProjectInteraction = (projectId) => {
-    // For touch devices, toggle expanded state on click
+    if (!isMobileView) {
+      return;
+    }
+
     if (expandedProject === projectId) {
       setExpandedProject(null);
     } else {
@@ -15,7 +36,7 @@ export default function Projects() {
   };
 
   const isProjectActive = (projectId) => {
-    return hoveredProject === projectId || expandedProject === projectId;
+    return (!isMobileView && hoveredProject === projectId) || expandedProject === projectId;
   };
 
   const projects = [
@@ -61,8 +82,16 @@ export default function Projects() {
             <div
               key={project.id}
               className={`project-item ${isProjectActive(project.id) ? 'hovered' : ''}`}
-              onMouseEnter={() => setHoveredProject(project.id)}
-              onMouseLeave={() => setHoveredProject(null)}
+              onMouseEnter={() => {
+                if (!isMobileView) {
+                  setHoveredProject(project.id);
+                }
+              }}
+              onMouseLeave={() => {
+                if (!isMobileView) {
+                  setHoveredProject(null);
+                }
+              }}
               onClick={() => handleProjectInteraction(project.id)}
               style={{ cursor: 'pointer' }}
             >
@@ -75,9 +104,18 @@ export default function Projects() {
                     <span className="status-badge">Under Development</span>
                   )}
                   <div className="project-category">{project.category}</div>
-                  <span className="expand-indicator" aria-hidden="true">
+                  <button
+                    type="button"
+                    className="expand-indicator"
+                    aria-label={isProjectActive(project.id) ? 'Collapse project details' : 'Expand project details'}
+                    aria-expanded={isProjectActive(project.id)}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleProjectInteraction(project.id);
+                    }}
+                  >
                     {isProjectActive(project.id) ? '−' : '+'}
-                  </span>
+                  </button>
                 </div>
               </div>
               
