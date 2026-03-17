@@ -331,6 +331,27 @@
 
 /* Responsive Design */
 @media (max-width: 767px) {
+  .projects-section {
+    min-height: auto;
+    padding: 48px 0 24px;
+  }
+
+  .projects-container {
+    padding: 0 18px;
+  }
+
+  .section-label {
+    margin-bottom: 24px;
+  }
+
+  .project-item {
+    padding: 28px 0;
+  }
+
+  .project-item:last-child {
+    padding-bottom: 16px;
+  }
+
   .project-item.hovered .project-main {
     padding-left: 0;
   }

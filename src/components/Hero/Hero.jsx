@@ -119,7 +119,8 @@ export default function Hero() {
       >
         <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 sm:h-10 sm:w-10 md:h-12 md:w-12">
           <svg
-            className="h-3.5 w-3.5 sm:h-5 sm:w-5 md:h-6 md:w-6"
+            className="h-3.5 w-3.5 animate-spin sm:h-5 sm:w-5 md:h-6 md:w-6"
+            style={{ animationDuration: "3s" }}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
