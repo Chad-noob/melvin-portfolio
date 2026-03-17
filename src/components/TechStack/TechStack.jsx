@@ -2,7 +2,6 @@ import { useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Float, Html } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import * as THREE from 'three';
 
 // Optimized sphere component with smooth floating
 function TechSphere({ position, size, name, logoUrl, index }) {
@@ -55,16 +54,16 @@ function TechSphere({ position, size, name, logoUrl, index }) {
       >
         <sphereGeometry args={[size, 32, 32]} />
         <meshStandardMaterial
-          color="#ffffff"
-          roughness={0.1}
-          metalness={0.05}
-          emissive="#ffffff"
-          emissiveIntensity={0.1}
+          color="#2a3945"
+          roughness={0.35}
+          metalness={0.12}
+          emissive="#1a2a34"
+          emissiveIntensity={0.06}
         />
         
         <Html
           center
-          distanceFactor={size * 1.2}
+          distanceFactor={size * 1.8}
           transform
           sprite
           style={{
@@ -237,11 +236,15 @@ export default function TechStack() {
 
         <div className="w-full h-[400px] sm:h-[500px] md:h-[600px] lg:h-[700px] relative">
           <Canvas
-            camera={{ position: [0, 0, window.innerWidth < 768 ? 22 : 18], fov: window.innerWidth < 768 ? 70 : 60}}
+            camera={{ position: [0, 0, window.innerWidth < 768 ? 20 : 16], fov: window.innerWidth < 768 ? 68 : 56 }}
+            dpr={[1, 1.5]}
             gl={{ 
               antialias: true, 
-              alpha: true,
-              preserveDrawingBuffer: true,
+              alpha: false,
+              powerPreference: 'high-performance',
+            }}
+            onCreated={({ gl }) => {
+              gl.setClearColor('#0d0d0d', 1);
             }}
           >
             <color attach="background" args={['#0d0d0d']} />
@@ -251,9 +254,9 @@ export default function TechStack() {
             
             <EffectComposer multisampling={0}>
               <Bloom 
-                intensity={0.3} 
-                luminanceThreshold={0.4} 
-                luminanceSmoothing={0.7}
+                intensity={0.12}
+                luminanceThreshold={0.62}
+                luminanceSmoothing={0.6}
                 height={150}
               />
             </EffectComposer>

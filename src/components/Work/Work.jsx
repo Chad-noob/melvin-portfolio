@@ -12,6 +12,27 @@ const GITHUB_RETRY_COUNT = 2;
 
 const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
+const parseSubmissionCalendar = (rawCalendar) => {
+  if (!rawCalendar) {
+    return {};
+  }
+
+  if (typeof rawCalendar === "string") {
+    try {
+      const parsed = JSON.parse(rawCalendar);
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch (err) {
+      return {};
+    }
+  }
+
+  if (typeof rawCalendar === "object") {
+    return rawCalendar;
+  }
+
+  return {};
+};
+
 export default function Work() {
   const [leetcodeData, setLeetcodeData] = useState(null);
   const [githubData, setGithubData] = useState(null);
@@ -248,18 +269,26 @@ export default function Work() {
   // Parse submission calendar data
   const getContributionData = () => {
     if (!leetcodeData?.userCalendar?.submissionCalendar) return [];
-    
-    const calendar = JSON.parse(leetcodeData.userCalendar.submissionCalendar);
+
+    const calendar = parseSubmissionCalendar(leetcodeData.userCalendar.submissionCalendar);
     const contributions = [];
     const today = new Date();
     const yearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+    const gridStartDate = new Date(yearAgo);
+    const gridEndDate = new Date(today);
 
-    for (let date = new Date(yearAgo); date <= today; date.setDate(date.getDate() + 1)) {
-      const timestamp = Math.floor(date.getTime() / 1000);
-      const count = calendar[timestamp] || 0;
+    // Pad to full weeks so the heatmap aligns like the official calendar.
+    gridStartDate.setDate(gridStartDate.getDate() - gridStartDate.getDay());
+    gridEndDate.setDate(gridEndDate.getDate() + (6 - gridEndDate.getDay()));
+
+    for (let date = new Date(gridStartDate); date <= gridEndDate; date.setDate(date.getDate() + 1)) {
+      const isPadded = date < yearAgo || date > today;
+      const timestamp = Math.floor(new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime() / 1000);
+      const count = isPadded ? 0 : (calendar[timestamp] || 0);
       contributions.push({
         date: new Date(date),
         count: count,
+        isPadded,
         level: count === 0 ? 0 : count < 5 ? 1 : count < 10 ? 2 : count < 15 ? 3 : 4
       });
     }
@@ -272,9 +301,9 @@ export default function Work() {
   // Calculate total submissions from calendar
   const getTotalSubmissions = () => {
     if (!leetcodeData?.userCalendar?.submissionCalendar) return 0;
-    
+
     try {
-      const calendar = JSON.parse(leetcodeData.userCalendar.submissionCalendar);
+      const calendar = parseSubmissionCalendar(leetcodeData.userCalendar.submissionCalendar);
       return Object.values(calendar).reduce((sum, count) => sum + (parseInt(count) || 0), 0);
     } catch (err) {
       return 0;
@@ -282,6 +311,43 @@ export default function Work() {
   };
 
   const totalSubmissions = getTotalSubmissions();
+
+  const getMaxStreak = () => {
+    if (!leetcodeData?.userCalendar?.submissionCalendar) return 0;
+
+    try {
+      const calendar = parseSubmissionCalendar(leetcodeData.userCalendar.submissionCalendar);
+      const sortedDays = Object.entries(calendar)
+        .map(([timestamp, count]) => ({
+          timestamp: Number(timestamp),
+          count: Number(count) || 0,
+        }))
+        .sort((a, b) => a.timestamp - b.timestamp);
+
+      let maxStreak = 0;
+      let currentStreak = 0;
+      let previousTimestamp = null;
+
+      sortedDays.forEach((day) => {
+        if (day.count > 0) {
+          if (previousTimestamp && day.timestamp - previousTimestamp === 86400) {
+            currentStreak += 1;
+          } else {
+            currentStreak = 1;
+          }
+          maxStreak = Math.max(maxStreak, currentStreak);
+        } else {
+          currentStreak = 0;
+        }
+
+        previousTimestamp = day.timestamp;
+      });
+
+      return maxStreak;
+    } catch (err) {
+      return 0;
+    }
+  };
 
   // Get stats
   const getStats = () => {
@@ -330,6 +396,28 @@ export default function Work() {
   };
 
   const weeks = groupByWeeks(contributions);
+  const maxStreak = getMaxStreak();
+
+  const monthTicks = (() => {
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const ticks = [];
+    let lastMonth = -1;
+
+    weeks.forEach((week, weekIndex) => {
+      const firstRealDay = week.find((day) => !day.isPadded);
+      if (!firstRealDay) {
+        return;
+      }
+
+      const monthIndex = firstRealDay.date.getMonth();
+      if (monthIndex !== lastMonth) {
+        ticks.push({ label: monthNames[monthIndex], weekIndex });
+        lastMonth = monthIndex;
+      }
+    });
+
+    return ticks;
+  })();
 
   return (
     <section id="work" className="min-h-screen bg-[#0d0d0d] text-white py-12 sm:py-16 md:py-20 px-4 sm:px-6 md:px-8">
@@ -418,41 +506,61 @@ export default function Work() {
               {/* Contribution Graph */}
               {contributions.length > 0 && (
                 <div className="overflow-x-auto">
-                  <div className="mb-4">
-                    <h4 className="text-xl font-semibold mb-2">Submission Activity</h4>
-                    <p className="text-sm text-gray-400">
-                      <span className="font-semibold text-white">{totalSubmissions}</span> submissions in the past one year • {' '}
-                      {leetcodeData.userCalendar?.totalActiveDays || 0} active days • 
-                      Current streak: {leetcodeData.userCalendar?.streak || 0} days
-                    </p>
-                  </div>
-                  
-                  <div className="inline-flex gap-1 p-4 bg-[#0d0d0d] rounded-xl">
-                    {weeks.map((week, weekIndex) => (
-                      <div key={weekIndex} className="flex flex-col gap-1">
-                        {week.map((day, dayIndex) => (
-                          <div
-                            key={dayIndex}
-                            className="w-3 h-3 rounded-sm transition-all hover:scale-125 cursor-pointer"
-                            style={{ backgroundColor: getColor(day.level) }}
-                            title={`${day.date.toLocaleDateString()}: ${day.count} submissions`}
-                          />
+                  <div className="min-w-[780px]">
+                    <div className="mb-3 flex items-center justify-between gap-4 text-sm">
+                      <p className="text-gray-300">
+                        <span className="font-semibold text-white">{totalSubmissions}</span> submissions in the past one year
+                      </p>
+                      <div className="flex items-center gap-5 text-gray-400">
+                        <span>Total active days: <span className="text-gray-200">{leetcodeData.userCalendar?.totalActiveDays || 0}</span></span>
+                        <span>Max streak: <span className="text-gray-200">{maxStreak}</span></span>
+                        <span className="rounded-md border border-gray-600 bg-[#1a1a1a] px-2 py-1 text-xs text-gray-300">Current</span>
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-[#2a2a2a] bg-[#0f1115] p-4">
+                      <div className="relative mb-3 h-4">
+                        {monthTicks.map((tick) => (
+                          <span
+                            key={`${tick.label}-${tick.weekIndex}`}
+                            className="absolute text-[11px] text-gray-400"
+                            style={{ left: `${(tick.weekIndex / Math.max(weeks.length - 1, 1)) * 100}%`, transform: "translateX(-2px)" }}
+                          >
+                            {tick.label}
+                          </span>
                         ))}
                       </div>
-                    ))}
-                  </div>
 
-                  {/* Legend */}
-                  <div className="flex items-center gap-2 mt-4 text-sm text-gray-400">
-                    <span>Less</span>
-                    {[0, 1, 2, 3, 4].map(level => (
-                      <div
-                        key={level}
-                        className="w-3 h-3 rounded-sm"
-                        style={{ backgroundColor: getColor(level) }}
-                      />
-                    ))}
-                    <span>More</span>
+                      <div className="inline-flex gap-1">
+                        {weeks.map((week, weekIndex) => (
+                          <div key={weekIndex} className="flex flex-col gap-1">
+                            {week.map((day, dayIndex) => (
+                              <div
+                                key={dayIndex}
+                                className="h-3.5 w-3.5 rounded-[2px] transition-all hover:scale-110"
+                                style={{
+                                  backgroundColor: getColor(day.level),
+                                  opacity: day.isPadded ? 0.28 : 1,
+                                }}
+                                title={`${day.date.toLocaleDateString()}: ${day.count} submissions`}
+                              />
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="mt-4 flex items-center gap-2 text-xs text-gray-400">
+                        <span>Less</span>
+                        {[0, 1, 2, 3, 4].map((level) => (
+                          <div
+                            key={level}
+                            className="h-3.5 w-3.5 rounded-[2px]"
+                            style={{ backgroundColor: getColor(level) }}
+                          />
+                        ))}
+                        <span>More</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
