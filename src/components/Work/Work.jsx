@@ -12,20 +12,13 @@ const GITHUB_RETRY_COUNT = 2;
 
 const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
-// Manual fallback stats (update these manually if APIs fail)
-const MANUAL_STATS = {
-  easy: 25,      // Update with your actual stats
-  medium: 15,    // Update with your actual stats
-  hard: 3,       // Update with your actual stats
-  total: 43      // Update with your actual stats
-};
-
 export default function Work() {
   const [leetcodeData, setLeetcodeData] = useState(null);
   const [githubData, setGithubData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [githubLoading, setGithubLoading] = useState(true);
   const [error, setError] = useState(null);
+  const hasLeetcodeDataRef = useRef(false);
 
   // Fetch LeetCode stats
   useEffect(() => {
@@ -126,6 +119,7 @@ export default function Work() {
             setLeetcodeData(transformedData);
             setError(null);
             setLoading(false);
+            hasLeetcodeDataRef.current = true;
           }
 
           console.log('LeetCode data loaded successfully');
@@ -142,7 +136,11 @@ export default function Work() {
       }
 
       if (isMounted) {
-        setError(`Could not load LeetCode data. Failed to fetch`);
+        setError(
+          hasLeetcodeDataRef.current
+            ? "Could not refresh live LeetCode data. Showing last available stats."
+            : "Could not load live LeetCode data right now."
+        );
         setLoading(false);
       }
     };
@@ -371,109 +369,32 @@ export default function Work() {
             </div>
           )}
 
-          {error && (
+          {error && !leetcodeData && (
             <div className="text-center py-12">
-              {MANUAL_STATS.total > 0 ? (
-                <>
-                  {/* Show stats cleanly without error box when manual stats exist */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-                    <div className="bg-[#0d0d0d] rounded-lg sm:rounded-xl p-4 sm:p-6 text-center">
-                      <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-400">{MANUAL_STATS.total}</p>
-                      <p className="text-gray-400 mt-2">Total Solved</p>
-                    </div>
-                    <div className="bg-[#0d0d0d] rounded-lg sm:rounded-xl p-4 sm:p-6 text-center">
-                      <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-500">{MANUAL_STATS.easy}</p>
-                      <p className="text-gray-400 mt-2">Easy</p>
-                    </div>
-                    <div className="bg-[#0d0d0d] rounded-lg sm:rounded-xl p-4 sm:p-6 text-center">
-                      <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-yellow-500">{MANUAL_STATS.medium}</p>
-                      <p className="text-gray-400 mt-2">Medium</p>
-                    </div>
-                    <div className="bg-[#0d0d0d] rounded-lg sm:rounded-xl p-4 sm:p-6 text-center">
-                      <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-red-500">{MANUAL_STATS.hard}</p>
-                      <p className="text-gray-400 mt-2">Hard</p>
-                    </div>
-                  </div>
-
-                  {/* Visual Progress Bars */}
-                  <div className="bg-[#0d0d0d] rounded-xl p-6 mb-8">
-                    <h4 className="text-xl font-semibold mb-4">Problem Difficulty Breakdown</h4>
-                    <div className="space-y-4">
-                      {/* Easy Progress */}
-                      <div>
-                        <div className="flex justify-between text-sm mb-2">
-                          <span className="text-green-500">Easy</span>
-                          <span className="text-gray-400">{MANUAL_STATS.easy} / {MANUAL_STATS.total}</span>
-                        </div>
-                        <div className="w-full bg-gray-800 rounded-full h-3">
-                          <div 
-                            className="bg-green-500 h-3 rounded-full transition-all"
-                            style={{ width: `${(MANUAL_STATS.easy / MANUAL_STATS.total) * 100}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                      {/* Medium Progress */}
-                      <div>
-                        <div className="flex justify-between text-sm mb-2">
-                          <span className="text-yellow-500">Medium</span>
-                          <span className="text-gray-400">{MANUAL_STATS.medium} / {MANUAL_STATS.total}</span>
-                        </div>
-                        <div className="w-full bg-gray-800 rounded-full h-3">
-                          <div 
-                            className="bg-yellow-500 h-3 rounded-full transition-all"
-                            style={{ width: `${(MANUAL_STATS.medium / MANUAL_STATS.total) * 100}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                      {/* Hard Progress */}
-                      <div>
-                        <div className="flex justify-between text-sm mb-2">
-                          <span className="text-red-500">Hard</span>
-                          <span className="text-gray-400">{MANUAL_STATS.hard} / {MANUAL_STATS.total}</span>
-                        </div>
-                        <div className="w-full bg-gray-800 rounded-full h-3">
-                          <div 
-                            className="bg-red-500 h-3 rounded-full transition-all"
-                            style={{ width: `${(MANUAL_STATS.hard / MANUAL_STATS.total) * 100}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <a 
-                    href={`https://leetcode.com/${LEETCODE_USERNAME.trim()}/`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block px-8 py-3 bg-yellow-500 text-black rounded-lg font-semibold hover:bg-yellow-400 transition-colors"
-                  >
-                    View My LeetCode Profile →
-                  </a>
-                </>
-              ) : (
-                <>
-                  {/* Show error only if no manual stats */}
-                  <div className="bg-yellow-900/20 border border-yellow-600 rounded-xl p-6 mb-6">
-                    <p className="text-yellow-400 mb-2 text-lg font-semibold">⚠️ API Temporarily Unavailable</p>
-                    <p className="text-gray-400 text-sm mb-1">{error}</p>
-                    <p className="text-gray-500 text-xs">The LeetCode API is rate limited. This is a temporary issue.</p>
-                  </div>
-                  <a 
-                    href={`https://leetcode.com/${LEETCODE_USERNAME.trim()}/`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block px-8 py-3 bg-yellow-500 text-black rounded-lg font-semibold hover:bg-yellow-400 transition-colors"
-                  >
-                    View My LeetCode Profile →
-                  </a>
-                  <p className="text-gray-500 text-sm mt-4">Visit my profile to see live stats</p>
-                </>
-              )}
+              <div className="bg-yellow-900/20 border border-yellow-600 rounded-xl p-6 mb-6">
+                <p className="text-yellow-400 mb-2 text-lg font-semibold">⚠️ Live stats unavailable</p>
+                <p className="text-gray-400 text-sm mb-1">{error}</p>
+                <p className="text-gray-500 text-xs">Please open my LeetCode profile to view the latest numbers directly.</p>
+              </div>
+              <a 
+                href={`https://leetcode.com/${LEETCODE_USERNAME.trim()}/`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block px-8 py-3 bg-yellow-500 text-black rounded-lg font-semibold hover:bg-yellow-400 transition-colors"
+              >
+                View My LeetCode Profile →
+              </a>
             </div>
           )}
 
-          {!loading && !error && leetcodeData && (
+          {!loading && leetcodeData && (
             <>
+              {error && (
+                <div className="mb-6 rounded-xl border border-yellow-700/40 bg-yellow-900/10 px-4 py-3 text-sm text-yellow-300">
+                  {error}
+                </div>
+              )}
+
               {/* Stats Cards */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
                 <div className="bg-[#0d0d0d] rounded-xl p-6 text-center">
