@@ -9,6 +9,26 @@ export default function Navbar() {
   const menuLine3 = useRef(null);
   const toggleTimeout = useRef(null);
 
+  const scrollToSection = (event, sectionId, shouldCloseMenu = false) => {
+    event.preventDefault();
+
+    const target = document.getElementById(sectionId);
+    if (!target) return;
+
+    if (window.lenis && typeof window.lenis.scrollTo === "function") {
+      window.lenis.scrollTo(target, {
+        offset: -24,
+        duration: 1,
+      });
+    } else {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    if (shouldCloseMenu) {
+      setIsMenuOpen(false);
+    }
+  };
+
   const toggleMenu = () => {
     // Prevent rapid clicking
     if (toggleTimeout.current) return;
@@ -68,12 +88,20 @@ export default function Navbar() {
         {/* Full Menu - visible when not scrolled */}
         <ul className={`hidden md:flex gap-6 lg:gap-8 text-sm lg:text-base text-gray-800 transition-opacity duration-300 ${isScrolled ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
           <li>
-            <a href="#about" className="hover:text-gray-600 transition-colors">
+            <a
+              href="#about"
+              className="hover:text-gray-600 transition-colors"
+              onClick={(event) => scrollToSection(event, "about")}
+            >
               About
             </a>
           </li>
           <li>
-            <a href="#work" className="hover:text-gray-600 transition-colors">
+            <a
+              href="#work"
+              className="hover:text-gray-600 transition-colors"
+              onClick={(event) => scrollToSection(event, "work")}
+            >
               Work
             </a>
           </li>
@@ -83,7 +111,11 @@ export default function Navbar() {
             </a>
           </li>
           <li>
-            <a href="#contact" className="hover:text-gray-600 transition-colors">
+            <a
+              href="#contact"
+              className="hover:text-gray-600 transition-colors"
+              onClick={(event) => scrollToSection(event, "contact")}
+            >
               Contact
             </a>
           </li>
@@ -130,12 +162,20 @@ export default function Navbar() {
           <div className="fixed top-16 sm:top-20 left-1/2 -translate-x-1/2 bg-white shadow-2xl rounded-xl p-5 sm:p-6 min-w-[180px] sm:min-w-[200px] z-[60] animate-slideDown">
             <ul className="flex flex-col gap-3 sm:gap-4 text-gray-800 text-sm sm:text-base">
               <li>
-                <a href="#about" className="hover:text-gray-600 transition-colors block py-1" onClick={toggleMenu}>
+                <a
+                  href="#about"
+                  className="hover:text-gray-600 transition-colors block py-1"
+                  onClick={(event) => scrollToSection(event, "about", true)}
+                >
                   About
                 </a>
               </li>
               <li>
-                <a href="#work" className="hover:text-gray-600 transition-colors block py-1" onClick={toggleMenu}>
+                <a
+                  href="#work"
+                  className="hover:text-gray-600 transition-colors block py-1"
+                  onClick={(event) => scrollToSection(event, "work", true)}
+                >
                   Work
                 </a>
               </li>
@@ -145,7 +185,11 @@ export default function Navbar() {
                 </a>
               </li>
               <li>
-                <a href="#contact" className="hover:text-gray-600 transition-colors block py-1" onClick={toggleMenu}>
+                <a
+                  href="#contact"
+                  className="hover:text-gray-600 transition-colors block py-1"
+                  onClick={(event) => scrollToSection(event, "contact", true)}
+                >
                   Contact
                 </a>
               </li>

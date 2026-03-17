@@ -71,6 +71,8 @@ export default function Home() {
         touchMultiplier: 2,  // Better touch sensitivity
       });
 
+      window.lenis = lenis;
+
       let rafId;
       let deferredMountTimer;
       function raf(time) {
@@ -89,6 +91,7 @@ export default function Home() {
       return () => {
         cancelAnimationFrame(rafId);
         window.clearTimeout(deferredMountTimer);
+        window.lenis = null;
         lenis.destroy();
       };
     }
