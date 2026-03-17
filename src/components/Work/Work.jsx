@@ -7,6 +7,10 @@ gsap.registerPlugin(ScrollTrigger);
 // ⚠️ CONFIGURATION: Replace with your usernames
 const LEETCODE_USERNAME = "oSxvdj7DbT";
 const GITHUB_USERNAME = "Chad-noob";  // Add your GitHub username here
+const LEETCODE_RETRY_COUNT = 2;
+const GITHUB_RETRY_COUNT = 2;
+
+const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
 // Manual fallback stats (update these manually if APIs fail)
 const MANUAL_STATS = {
@@ -25,76 +29,83 @@ export default function Work() {
 
   // Fetch LeetCode stats
   useEffect(() => {
+    let isMounted = true;
+
     const fetchLeetCodeStats = async () => {
-      try {
+      if (isMounted) {
         setLoading(true);
-        console.log('Fetching LeetCode data for:', LEETCODE_USERNAME);
-        
-        let data = null;
-        let calendarData = null;
-        let lastError = null;
-        
-        // Try alfa-leetcode-api for stats
+        setError(null);
+      }
+
+      let lastError = null;
+
+      for (let attempt = 0; attempt <= LEETCODE_RETRY_COUNT; attempt++) {
         try {
-          console.log('Fetching from alfa-leetcode-api...');
-          const [profileRes, calendarRes] = await Promise.all([
-            fetch(`https://alfa-leetcode-api.onrender.com/userProfile/${LEETCODE_USERNAME.trim()}`),
-            fetch(`https://alfa-leetcode-api.onrender.com/${LEETCODE_USERNAME.trim()}/calendar`)
-          ]);   
-          
-          if (profileRes.ok) {
-            data = await profileRes.json();
-            console.log('Profile data:', data);
+          console.log('Fetching LeetCode data for:', LEETCODE_USERNAME, 'attempt:', attempt + 1);
+
+          let data = null;
+          let calendarData = null;
+
+          try {
+            console.log('Fetching from alfa-leetcode-api...');
+            const [profileRes, calendarRes] = await Promise.all([
+              fetch(`https://alfa-leetcode-api.onrender.com/userProfile/${LEETCODE_USERNAME.trim()}`),
+              fetch(`https://alfa-leetcode-api.onrender.com/${LEETCODE_USERNAME.trim()}/calendar`)
+            ]);
+
+            if (profileRes.ok) {
+              data = await profileRes.json();
+              console.log('Profile data:', data);
+            }
+
+            if (calendarRes.ok) {
+              calendarData = await calendarRes.json();
+              console.log('Calendar data:', calendarData);
+            }
+          } catch (err) {
+            console.log('alfa-leetcode-api failed:', err.message);
+            lastError = err;
           }
-          
-          if (calendarRes.ok) {
-            calendarData = await calendarRes.json();
-            console.log('Calendar data:', calendarData);
-          }
-        } catch (err) {
-          console.log('alfa-leetcode-api failed:', err.message);
-          lastError = err;
-        }
-        
-        // If alfa API didn't work, try other APIs for basic stats
-        if (!data) {
-          const fallbackApis = [
-            `https://leetcode-stats-api.herokuapp.com/${LEETCODE_USERNAME.trim()}`,
-            `https://leetcode.com/${LEETCODE_USERNAME.trim()}`
-          ];
-          
-          for (const apiUrl of fallbackApis) {
-            try {
-              console.log('Trying fallback API:', apiUrl);
-              const response = await fetch(apiUrl);
-              
-              if (response.ok) {
-                data = await response.json();
-                console.log('Fallback API response:', data);
-                
-                if (data && (data.totalSolved || data.easySolved !== undefined)) {
-                  break;
+
+          if (!data) {
+            const fallbackApis = [
+              `https://leetcode-stats-api.herokuapp.com/${LEETCODE_USERNAME.trim()}`,
+              `https://leetcode.com/${LEETCODE_USERNAME.trim()}`
+            ];
+
+            for (const apiUrl of fallbackApis) {
+              try {
+                console.log('Trying fallback API:', apiUrl);
+                const response = await fetch(apiUrl);
+
+                if (response.ok) {
+                  data = await response.json();
+                  console.log('Fallback API response:', data);
+
+                  if (data && (data.totalSolved || data.easySolved !== undefined)) {
+                    break;
+                  }
                 }
+              } catch (err) {
+                console.log('Fallback API failed:', apiUrl, err.message);
+                lastError = err;
               }
-            } catch (err) {
-              console.log('Fallback API failed:', apiUrl, err.message);
-              lastError = err;
             }
           }
-        }
-        
-        // Parse the data from whichever API worked
-        if (data) {
+
+          if (!data) {
+            throw lastError || new Error('All APIs failed');
+          }
+
           const easySolved = data.easySolved || data.submitStatsGlobal?.acSubmissionNum?.[1]?.count || 0;
           const mediumSolved = data.mediumSolved || data.submitStatsGlobal?.acSubmissionNum?.[2]?.count || 0;
           const hardSolved = data.hardSolved || data.submitStatsGlobal?.acSubmissionNum?.[3]?.count || 0;
           const totalSolved = data.totalSolved || data.submitStatsGlobal?.acSubmissionNum?.[0]?.count || (easySolved + mediumSolved + hardSolved);
-          
-          // Use calendar data if available, otherwise use empty calendar
-          const submissionCalendar = calendarData?.submissionCalendar || 
-                                    data.submissionCalendar || 
+
+          const submissionCalendar = calendarData?.submissionCalendar ||
+                                    data.submissionCalendar ||
                                     (calendarData ? JSON.stringify(calendarData) : "{}");
-          
+
           const transformedData = {
             username: LEETCODE_USERNAME,
             submitStats: {
@@ -107,20 +118,31 @@ export default function Work() {
             userCalendar: {
               totalActiveDays: calendarData?.totalActiveDays || data.totalActiveDays || totalSolved,
               streak: calendarData?.streak || data.streak || 0,
-              submissionCalendar: submissionCalendar
+              submissionCalendar
             }
           };
-          
-          setLeetcodeData(transformedData);
-          setError(null);
+
+          if (isMounted) {
+            setLeetcodeData(transformedData);
+            setError(null);
+            setLoading(false);
+          }
+
           console.log('LeetCode data loaded successfully');
-        } else {
-          throw lastError || new Error('All APIs failed');
+          return;
+        } catch (err) {
+          lastError = err;
+          console.error(`Error fetching LeetCode data on attempt ${attempt + 1}:`, err);
+
+          if (attempt < LEETCODE_RETRY_COUNT) {
+            await wait(1000 * (attempt + 1));
+            continue;
+          }
         }
-      } catch (err) {
-        console.error("Error fetching LeetCode data:", err);
+      }
+
+      if (isMounted) {
         setError(`Could not load LeetCode data. Failed to fetch`);
-      } finally {
         setLoading(false);
       }
     };
@@ -129,66 +151,84 @@ export default function Work() {
 
     // Refresh data every 30 minutes (reduced to avoid rate limits)
     const interval = setInterval(fetchLeetCodeStats, 30 * 60 * 1000);
-    return () => clearInterval(interval);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   // Fetch GitHub stats
   useEffect(() => {
+    let isMounted = true;
+
     const fetchGitHubStats = async () => {
-      try {
+      if (isMounted) {
         setGithubLoading(true);
-        console.log('Fetching GitHub data for:', GITHUB_USERNAME);
+      }
 
-        // Fetch user stats from GitHub API
-        const userResponse = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}`, {
-          headers: {
-            'Accept': 'application/vnd.github.v3+json'
-          }
-        });
-        
-        if (!userResponse.ok) {
-          console.log(`GitHub API returned status: ${userResponse.status}`);
-          throw new Error(`GitHub API error: ${userResponse.status}`);
-        }
-
-        const userData = await userResponse.json();
-        console.log('GitHub user data:', userData);
-
-        // Try to get contribution stats
-        let contributionsData = { total: { lastYear: 0 } };
-        
+      for (let attempt = 0; attempt <= GITHUB_RETRY_COUNT; attempt++) {
         try {
-          const contribResponse = await fetch(
-            `https://github-contributions-api.jogruber.de/v4/${GITHUB_USERNAME}?y=last`
-          );
-          
-          if (contribResponse.ok) {
-            contributionsData = await contribResponse.json();
-            console.log('GitHub contributions data:', contributionsData);
+          console.log('Fetching GitHub data for:', GITHUB_USERNAME, 'attempt:', attempt + 1);
+
+          const userResponse = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}`, {
+            headers: {
+              'Accept': 'application/vnd.github.v3+json'
+            }
+          });
+
+          if (!userResponse.ok) {
+            console.log(`GitHub API returned status: ${userResponse.status}`);
+            throw new Error(`GitHub API error: ${userResponse.status}`);
           }
+
+          const userData = await userResponse.json();
+          console.log('GitHub user data:', userData);
+
+          let contributionsData = { total: { lastYear: 0 } };
+
+          try {
+            const contribResponse = await fetch(
+              `https://github-contributions-api.jogruber.de/v4/${GITHUB_USERNAME}?y=last`
+            );
+
+            if (contribResponse.ok) {
+              contributionsData = await contribResponse.json();
+              console.log('GitHub contributions data:', contributionsData);
+            }
+          } catch (err) {
+            console.log('Contributions API failed:', err.message);
+            contributionsData.total.lastYear = userData.public_repos * 5;
+          }
+
+          if (isMounted) {
+            setGithubData({
+              username: userData.login,
+              name: userData.name,
+              avatar: userData.avatar_url,
+              bio: userData.bio,
+              publicRepos: userData.public_repos,
+              followers: userData.followers,
+              following: userData.following,
+              contributions: contributionsData
+            });
+            setGithubLoading(false);
+          }
+
+          console.log('GitHub data loaded successfully');
+          return;
         } catch (err) {
-          console.log('Contributions API failed:', err.message);
-          // Fallback: estimate from repo count
-          contributionsData.total.lastYear = userData.public_repos * 5;
+          console.error(`Error fetching GitHub data on attempt ${attempt + 1}:`, err);
+
+          if (attempt < GITHUB_RETRY_COUNT) {
+            await wait(1000 * (attempt + 1));
+            continue;
+          }
         }
+      }
 
-        setGithubData({
-          username: userData.login,
-          name: userData.name,
-          avatar: userData.avatar_url,
-          bio: userData.bio,
-          publicRepos: userData.public_repos,
-          followers: userData.followers,
-          following: userData.following,
-          contributions: contributionsData
-        });
-
-        console.log('GitHub data loaded successfully');
-      } catch (err) {
-        console.error("Error fetching GitHub data:", err);
-        // Don't set to null, keep any existing data
+      if (isMounted) {
         console.log('Will display contribution graph only');
-      } finally {
         setGithubLoading(false);
       }
     };
@@ -198,7 +238,10 @@ export default function Work() {
       
       // Auto-refresh every 10 minutes
       const interval = setInterval(fetchGitHubStats, 10 * 60 * 1000);
-      return () => clearInterval(interval);
+      return () => {
+        isMounted = false;
+        clearInterval(interval);
+      };
     } else {
       setGithubLoading(false);
     }
@@ -321,7 +364,10 @@ export default function Work() {
 
           {loading && (
             <div className="flex items-center justify-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+                <p className="mt-4 text-sm text-gray-400">Loading live LeetCode stats...</p>
+              </div>
             </div>
           )}
 
@@ -516,7 +562,10 @@ export default function Work() {
 
             {githubLoading && (
               <div className="flex items-center justify-center py-20">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+                  <p className="mt-4 text-sm text-gray-400">Loading live GitHub activity...</p>
+                </div>
               </div>
             )}
 

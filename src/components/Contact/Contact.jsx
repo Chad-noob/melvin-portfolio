@@ -53,7 +53,7 @@ export default function Contact() {
       <div className="max-w-4xl w-full">
         {/* Main heading */}
         <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light mb-12 sm:mb-16 md:mb-20 leading-tight">
-          Let's start a<br />project together
+          Let's connect<br />and talk
         </h2>
 
         {/* Contact form */}
