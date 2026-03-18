@@ -144,7 +144,7 @@ export default function About() {
   };
 
   const textLines = [
-    "a developer passionate about building interactive digital experiences.",
+    "A developer passionate about building interactive digital experiences.",
     "I enjoy combining design, motion, and technology to create modern web applications.",
     "Outside of coding, I'm deeply interested in automobiles and automotive engineering.",
     "Music is also a big part of my life, and I enjoy playing the guitar.",
