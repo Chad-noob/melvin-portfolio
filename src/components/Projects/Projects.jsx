@@ -41,6 +41,22 @@ export default function Projects() {
 
   const projects = [
     {
+      id: 3,
+      name: "SnapDiff - AI Code Dependency Analyzer",
+      category: "Design & Development",
+      period: "03/2026 - Present",
+      shortDesc: "AI Code Dependency Analyzer",
+      description: [
+        "Developed a tool that visualizes code dependencies and module relationships in JavaScript/React projects using interactive graphs.",
+        "Implemented impact analysis to identify files affected by code changes, improving debugging and development efficiency.",
+        "Enabled root dependency tracing to help developers quickly understand complex codebases.",
+        "Assisted software testing by identifying affected modules, allowing focused regression testing."
+      ],
+      tools: "JavaScript, React.js, Interactive Graphs, Impact Analysis, Dependency Tracing",
+      link: "https://github.com/Chad-noob/snapdiff",
+      status: "completed"
+    },
+    {
       id: 1,
       name: "Simulation of Electronic Road Passing System",
       category: "Design & Development",
